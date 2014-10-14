@@ -26,4 +26,3 @@ urlpatterns = patterns(
         include(admin.site.urls)
     ),
 )
-

@@ -8,11 +8,11 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name="django-request-profiler",
-    version="0.1",
-    packages=['django_request_profiler'],
+    version="0.2",
+    packages=['request_profiler'],
     install_requires=['django>=1.6'],
     include_package_data=True,
-    description='Django Request Profiler - a simple profiler for timing HTTP requests to responses',
+    description='Django Request Profiler - a simple profiler for timing HTTP requests.',
     long_description=README,
     url='https://github.com/yunojuno/django-request-profiler',
     author='Chris Wood',
