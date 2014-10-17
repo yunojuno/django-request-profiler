@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 # models definitions for request_profiler
-import datetime
 import re
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils import timezone
 
 from request_profiler import settings
 
@@ -105,7 +105,7 @@ class ProfilingRecord(models.Model):
 
     def start(self):
         """Set start_ts from current datetime."""
-        self.start_ts = datetime.datetime.utcnow()
+        self.start_ts = timezone.now()
         self.end_ts = None
         self.duration = None
         return self
@@ -114,7 +114,7 @@ class ProfilingRecord(models.Model):
     def elapsed(self):
         """Calculated time elapsed so far."""
         assert self.start_ts is not None, u"You must 'start' before you can get elapsed time."
-        return (datetime.datetime.utcnow() - self.start_ts).total_seconds()
+        return (timezone.now() - self.start_ts).total_seconds()
 
     def set_request_properties(self, request):
         """Extract values from HttpRequest and store locally."""
@@ -138,6 +138,6 @@ class ProfilingRecord(models.Model):
     def stop(self):
         """Set end_ts and duration from current datetime."""
         assert self.start_ts is not None, u"You must 'start' before you can 'stop'"
-        self.end_ts = datetime.datetime.utcnow()
+        self.end_ts = timezone.now()
         self.duration = (self.end_ts - self.start_ts).total_seconds()
         return self
