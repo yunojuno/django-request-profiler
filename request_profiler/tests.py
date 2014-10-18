@@ -25,6 +25,7 @@ class MockSession():
 class MockResponse():
     def __init__(self, status_code):
         self.status_code = status_code
+        self.content = "Hello, World!"
         self.values = {}
 
     def __getitem__(self, key):
@@ -216,14 +217,14 @@ class ProfilingRecordModelTests(TestCase):
         self.assertIsNone(profile.end_ts)
         self.assertIsNone(profile.duration)
 
-    def test_set_request_properties(self):
+    def test_set_request(self):
 
         factory = RequestFactory()
         request = factory.get("/test")
         request.META['HTTP_USER_AGENT'] = "test-browser"
         profile = ProfilingRecord()
 
-        profile.set_request_properties(request)
+        profile.set_request(request)
         self.assertEqual(profile.http_method, request.method)
         self.assertEqual(profile.request_uri, request.path)
         # for some reason user-agent is a tuple - need to read specs!
@@ -234,20 +235,27 @@ class ProfilingRecordModelTests(TestCase):
         # test that we can set the session
         request.session = MockSession("test-session-key")
         profile = ProfilingRecord()
-        profile.set_request_properties(request)
+        profile.set_request(request)
         self.assertEqual(profile.session_key, "test-session-key")
 
         # test that we can set the user
         request.user = User.objects.create_user("bob")
         profile = ProfilingRecord()
-        profile.set_request_properties(request)
+        profile.set_request(request)
         self.assertEqual(profile.user, request.user)
 
         # but we do not save anonymous users
         request.user = AnonymousUser()
         profile = ProfilingRecord()
-        profile.set_request_properties(request)
+        profile.set_request(request)
         self.assertEqual(profile.user, None)
+
+    def test_set_response(self):
+        response = MockResponse(200)
+        profiler = ProfilingRecord().start()
+        profiler.set_response(response)
+        self.assertEqual(profiler.response_status_code, 200)
+        self.assertEqual(profiler.response_content_length, 13)
 
 
 class ProfilingMiddlewareTests(TestCase):
@@ -294,14 +302,14 @@ class ProfilingMiddlewareTests(TestCase):
         profiler.process_request(request)
         # this implicitly checks that the profile is attached,
         # and that start() has been called.
-        self.assertIsNotNone(request.profiler_record.elapsed)
+        self.assertIsNotNone(request.profiler.elapsed)
 
     def test_process_view(self):
         request = self.factory.get('/')
-        request.profiler_record = ProfilingRecord()
+        request.profiler = ProfilingRecord()
         profiler = ProfilingMiddleware()
         profiler.process_view(request, dummy_view_func, [], {})
-        self.assertEqual(request.profiler_record.view_func_name, "dummy_view_func")
+        self.assertEqual(request.profiler.view_func_name, "dummy_view_func")
 
     def test_process_response(self):
 
@@ -311,24 +319,23 @@ class ProfilingMiddlewareTests(TestCase):
             profiler.process_response(request, None)
 
         # try no matching rules
-        request.profiler_record = ProfilingRecord().start()
+        request.profiler = ProfilingRecord().start()
         response = profiler.process_response(request, MockResponse(200))
         self.assertEqual(response.status_code, 200)
-        self.assertFalse(hasattr(request, 'profiler_record'))
+        self.assertFalse(hasattr(request, 'profiler'))
 
         # try matching a rule, anc checking response values
         r1 = RuleSet()
         r1.save()
-        request.profiler_record = ProfilingRecord().start()
+        request.profiler = ProfilingRecord().start()
         response = profiler.process_response(request, MockResponse(200))
-        self.assertTrue(request.profiler_record.response_status_code, response.status_code)
-        self.assertTrue(response['X-Profiler-Duration'], request.profiler_record.duration)
-        self.assertTrue(response['X-Profiler-Rules'], r1.id)
+        self.assertTrue(request.profiler.response_status_code, response.status_code)
+        self.assertTrue(response['X-Profiler-Duration'], request.profiler.duration)
 
     def test_process_response_signal_cancellation(self):
 
         request = self.factory.get('/')
-        request.profiler_record = ProfilingRecord().start()
+        request.profiler = ProfilingRecord().start()
         profiler = ProfilingMiddleware()
 
         # try matching a rule, anc checking response values
@@ -346,4 +353,4 @@ class ProfilingMiddlewareTests(TestCase):
         # because we returned False from the signal receiver,
         # we should have stopped profiling.
         self.assertTrue(self.signal_received)
-        self.assertFalse(hasattr(request, 'profiler_record'))
+        self.assertFalse(hasattr(request, 'profiler'))

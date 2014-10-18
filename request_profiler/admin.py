@@ -28,7 +28,8 @@ class ProfilingRecordAdmin(admin.ModelAdmin):
         'duration',
         'request_uri',
         'view_func_name',
-        'response_status_code'
+        'response_status_code',
+        'response_content_length'
     )
 
 admin.site.register(

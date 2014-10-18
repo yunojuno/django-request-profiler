@@ -29,11 +29,11 @@ class ProfilingMiddleware(object):
 
     def process_request(self, request):
         """Start profiling."""
-        request.profiler_record = ProfilingRecord().start()
+        request.profiler = ProfilingRecord().start()
 
     def process_view(self, request, view_func, view_args, view_kwargs):
         """Add view_func to the profiler info."""
-        request.profiler_record.view_func_name = view_func.__name__
+        request.profiler.view_func_name = view_func.__name__
 
     def process_response(self, request, response):
         """Add response information and save the profiler record.
@@ -46,33 +46,30 @@ class ProfilingMiddleware(object):
         and aborting the save if any listeners respond False.
 
         """
-        assert getattr(request, 'profiler_record', None) is not None, (
-            u"Request has no profiler_record attached."
+        assert getattr(request, 'profiler', None) is not None, (
+            u"Request has no profiler attached."
         )
         # see if we have any matching rules
-        matching_rules = self.match_rules(request, RuleSet.objects.live_rules())
+        rules = self.match_rules(request, RuleSet.objects.live_rules())
 
         # clean up after outselves
-        if len(matching_rules) == 0:
-            del request.profiler_record
+        if len(rules) == 0:
+            del request.profiler
             return response
 
-        profiler = request.profiler_record
-        profiler.set_request_properties(request)
-        profiler.response_status_code = response.status_code
+        request.profiler.set_request(request)
         # send signal so that receivers can intercept profiler
         signal_responses = request_profile_complete.send(
             sender=self.__class__,
             request=request,
             response=response,
-            instance=profiler
+            instance=request.profiler
         )
         # if any signal receivers have returned False, then do **not** save
         if all([s[1] for s in signal_responses]):
-            profiler.stop().save()
-            response['X-Profiler-Duration'] = profiler.duration or profiler.elapsed
-            response['X-Profiler-Rules'] = ','.join(str(r.id) for r in matching_rules)
+            request.profiler.set_response(response).stop().save()
         else:
-            del request.profiler_record
+            # one of the signals said "no", so chuck it away.
+            del request.profiler
 
         return response

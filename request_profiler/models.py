@@ -125,6 +125,7 @@ class ProfilingRecord(models.Model):
     http_user_agent = models.CharField(max_length=400)
     view_func_name = models.CharField(max_length=100, verbose_name="View function")
     response_status_code = models.IntegerField()
+    response_content_length = models.IntegerField()
 
     def start(self):
         """Set start_ts from current datetime."""
@@ -139,7 +140,7 @@ class ProfilingRecord(models.Model):
         assert self.start_ts is not None, u"You must 'start' before you can get elapsed time."
         return (timezone.now() - self.start_ts).total_seconds()
 
-    def set_request_properties(self, request):
+    def set_request(self, request):
         """Extract values from HttpRequest and store locally."""
         self.http_method = request.method
         self.request_uri = request.path
@@ -157,6 +158,14 @@ class ProfilingRecord(models.Model):
         # NB you can't store AnonymouseUsers, so don't bother trying
         if hasattr(request, 'user') and request.user.is_authenticated():
             self.user = request.user
+        return self
+
+    def set_response(self, response):
+        """Extract values from HttpResponse and store locally."""
+        self.response_status_code = response.status_code
+        self.response_content_length = len(response.content)
+        response['X-Profiler-Duration'] = self.duration or self.elapsed
+        return self
 
     def stop(self):
         """Set end_ts and duration from current datetime."""
