@@ -3,6 +3,7 @@
 import re
 
 from django.contrib.auth.models import User, AnonymousUser
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
@@ -13,11 +14,12 @@ from request_profiler import settings
 class RuleSetManager(models.Manager):
     """Custom model manager for RuleSet instances."""
     def live_rules(self):
-        """Return enabled rules.
-
-        TODO: cache results.
-        """
-        return self.get_queryset().filter(enabled=True)
+        """Return enabled rules."""
+        rulesets = cache.get(settings.RULESET_CACHE_KEY)
+        if rulesets is None:
+            rulesets = self.get_queryset().filter(enabled=True)
+            cache.set(settings.RULESET_CACHE_KEY, rulesets, settings.RULESET_CACHE_TIMEOUT)
+        return rulesets
 
 
 class RuleSet(models.Model):

@@ -2,9 +2,11 @@
 # tests for the request_profiler app
 import datetime
 
-from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import User, AnonymousUser, Group
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.test import TestCase, RequestFactory
+from django.test.utils import override_settings
 
 from request_profiler.middleware import ProfilingMiddleware
 from request_profiler.models import RuleSet, RuleSetManager, ProfilingRecord
@@ -54,6 +56,23 @@ class RuleSetManagerTests(TestCase):
         r2.enabled = False
         r2.save()
         self.assertEqual(RuleSet.objects.live_rules().count(), 1)
+
+    def test_live_rules_with_caching(self):
+
+        settings.RULESET_CACHE_TIMEOUT = 10
+        self.assertIsNone(cache.get(settings.RULESET_CACHE_KEY))
+        # save a couple of rules
+        RuleSet(uri_regex="", enabled=True).save()
+        RuleSet(uri_regex="", enabled=True).save()
+        self.assertEqual(RuleSet.objects.live_rules().count(), 2)
+        self.assertIsNotNone(cache.get(settings.RULESET_CACHE_KEY))
+        # cache is full, delete the underlying records and retrieve
+        RuleSet.objects.all().delete()
+        # we're going to the cache, so even so DB is empty, we get two back
+        self.assertEqual(RuleSet.objects.live_rules().count(), 2)
+        # clear out cache and confirm we're now going direct to DB
+        cache.clear()
+        self.assertEqual(RuleSet.objects.live_rules().count(), 0)
 
 
 class RuleSetModelTests(TestCase):
@@ -166,7 +185,7 @@ class ProfilingRecordModelTests(TestCase):
     """Basic model properrty and method tests."""
 
     def setUp(self):
-        pass
+        cache.clear()
 
     def test_default_properties(self):
         profile = ProfilingRecord()
