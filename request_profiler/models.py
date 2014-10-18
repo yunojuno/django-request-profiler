@@ -2,7 +2,8 @@
 # models definitions for request_profiler
 import re
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AnonymousUser
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
@@ -22,6 +23,17 @@ class RuleSetManager(models.Manager):
 class RuleSet(models.Model):
     """Set of rules to match a URI and/or User."""
 
+    # property used to determine how to filter users
+    USER_FILTER_ALL = 0
+    USER_FILTER_AUTH = 1
+    USER_FILTER_GROUP = 2
+
+    USER_FILTER_CHOICES = (
+        (USER_FILTER_ALL, "All users (inc. None)"),
+        (USER_FILTER_AUTH, "Authenticated users only"),
+        (USER_FILTER_GROUP, "Users in a named group"),
+    )
+
     enabled = models.BooleanField(
         default=True,
         db_index=True,
@@ -32,16 +44,18 @@ class RuleSet(models.Model):
         max_length=100,
         help_text=u"Regex used to filter by request URI."
     )
+    user_filter_type = models.IntegerField(
+        default=0,
+        choices=USER_FILTER_CHOICES,
+        help_text=u"Filter requests by type of user.",
+        verbose_name=u"User filter."
+    )
     user_group_filter = models.CharField(
         blank=True,
         default="",
         max_length=100,
-        help_text=u"Name of a group used to filter users to profile.",
+        help_text=u"Group used to filter users.",
         verbose_name=u"User Group Filter"
-    )
-    include_anonymous = models.BooleanField(
-        default=True,
-        help_text=u"Include anonymous users (ignore group filters)."
     )
     # use the custom model manager
     objects = RuleSetManager()
@@ -49,6 +63,13 @@ class RuleSet(models.Model):
     @property
     def has_group_filter(self):
         return len(self.user_group_filter.strip()) > 0
+
+    def clean(self):
+        """Ensure that user_filter_group is only set if user_filter_type is appropriate."""
+        if self.has_group_filter and self.user_filter_type != RuleSet.USER_FILTER_GROUP:
+            raise ValidationError(u"User filter type must be 'group' if you specify a group.")
+        if self.user_filter_type == RuleSet.USER_FILTER_GROUP and not self.has_group_filter:
+            raise ValidationError(u"You must specify a group if the filter type is 'group'.")
 
     def match_uri(self, request_uri):
         """Return True if there is a uri_regex and it matches.
@@ -68,24 +89,26 @@ class RuleSet(models.Model):
             return re.search(regex, request_uri) is not None
 
     def match_user(self, user):
-        """Return True if the user passes the various user filters.
+        """Return True if the user passes the various user filters."""
+        # treat no user (i.e. has not been added) as AnonymousUser()
+        user = user or AnonymousUser()
 
-        Match user against anonymous and group filters.
-        """
-        # if the user is anonymous, then they'll have no groups, and
-        # the group filter is irrelevant - if you're including anonymous
-        # that's all that counts
-        if user is None or user.is_anonymous():
-            return self.include_anonymous
-        elif user.is_staff and settings.IGNORE_STAFF:
+        if user.is_staff and settings.IGNORE_STAFF:
             return False
 
-        # user is authenticated and not staff - do we have a group filter?
-        if self.has_group_filter:
-            # does the group exist in the user's groups
-            return self.user_group_filter.strip() in [g.name for g in user.groups.all()]
+        if self.user_filter_type == RuleSet.USER_FILTER_ALL:
+            return True
 
-        return True
+        if self.user_filter_type == RuleSet.USER_FILTER_AUTH:
+            return user.is_authenticated()
+
+        if self.user_filter_type == RuleSet.USER_FILTER_GROUP:
+            group = self.user_group_filter.strip()
+            return user.groups.filter(name__iexact=group).exists()
+
+        # if we're still going, then it's a no. it's also an invalid
+        # user_filter_type, so we may want to think about a warning
+        return False
 
 
 class ProfilingRecord(models.Model):

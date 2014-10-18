@@ -10,8 +10,8 @@ class RuleSetAdmin(admin.ModelAdmin):
     list_display = (
         'enabled',
         'uri_regex',
+        'user_filter_type',
         'user_group_filter',
-        'include_anonymous',
     )
 
 admin.site.register(

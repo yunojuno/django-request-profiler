@@ -19,6 +19,7 @@ INSTALLED_APPS = (
     'django_coverage',
     'request_profiler',
     'test_app',
+    'south'
 )
 
 MIDDLEWARE_CLASSES = [

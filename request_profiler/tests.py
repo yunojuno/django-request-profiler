@@ -4,6 +4,7 @@ import datetime
 
 from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import User, AnonymousUser, Group
+from django.core.exceptions import ValidationError
 
 from request_profiler.middleware import ProfilingMiddleware
 from request_profiler.models import RuleSet, RuleSetManager, ProfilingRecord
@@ -26,24 +27,11 @@ class MockResponse():
         self.status_code = status_code
         self.values = {}
 
-    def __len__(self):
-        return len(self.values)
-
     def __getitem__(self, key):
-        # if key is of invalid type or value, the list values will raise the error
         return self.values[key]
 
     def __setitem__(self, key, value):
         self.values[key] = value
-
-    def __delitem__(self, key):
-        del self.values[key]
-
-    def __iter__(self):
-        return iter(self.values)
-
-    # def __reversed__(self):
-    #     return FunctionalList(reversed(self.values))
 
 
 class RuleSetManagerTests(TestCase):
@@ -78,15 +66,15 @@ class RuleSetModelTests(TestCase):
         props = [
             ('enabled', True),
             ('uri_regex', ""),
+            ('user_filter_type', 0),
             ('user_group_filter', ""),
-            ('include_anonymous', True),
         ]
         for p in props:
             self.assertEqual(getattr(ruleset, p[0]), p[1])
         self.assertIsInstance(RuleSet.objects, RuleSetManager)
 
     def test_has_group_filter(self):
-        ruleset = RuleSet("")
+        ruleset = RuleSet()
         filters = (
             ("", False),
             (" ", False),
@@ -95,6 +83,17 @@ class RuleSetModelTests(TestCase):
         for f in filters:
             ruleset.user_group_filter = f[0]
             self.assertEqual(ruleset.has_group_filter, f[1])
+
+    def test_clean(self):
+        ruleset = RuleSet(user_group_filter="test")
+        for f in (RuleSet.USER_FILTER_ALL, RuleSet.USER_FILTER_AUTH):
+            ruleset.user_filter_type = f
+            self.assertRaises(ValidationError, ruleset.clean)
+        ruleset.user_filter_type = RuleSet.USER_FILTER_GROUP
+        ruleset.clean()
+        # now try the opposite - user_filter_type set, but no group set
+        ruleset.user_group_filter = ""
+        self.assertRaises(ValidationError, ruleset.clean)
 
     def test_match_uri(self):
         ruleset = RuleSet("")
@@ -114,14 +113,14 @@ class RuleSetModelTests(TestCase):
     def test_match_user(self):
         ruleset = RuleSet("")
         self.assertFalse(ruleset.has_group_filter)
-        self.assertTrue(ruleset.include_anonymous)
+        self.assertEqual(ruleset.user_filter_type, RuleSet.USER_FILTER_ALL)
 
         # start with no user / anonymous
         self.assertTrue(ruleset.match_user(None))
         self.assertTrue(ruleset.match_user(AnonymousUser()))
 
         # now exclude anonymous
-        ruleset.include_anonymous = False
+        ruleset.user_filter_type = RuleSet.USER_FILTER_AUTH
         self.assertFalse(ruleset.match_user(None))
         self.assertFalse(ruleset.match_user(AnonymousUser()))
 
@@ -133,6 +132,7 @@ class RuleSetModelTests(TestCase):
         self.assertTrue(ruleset.match_user(bob))
 
         # now create the filter, and check bob no longer matches
+        ruleset.user_filter_type = RuleSet.USER_FILTER_GROUP
         ruleset.user_group_filter = "test"
         test_group = Group(name="test")
         test_group.save()
@@ -151,6 +151,14 @@ class RuleSetModelTests(TestCase):
         # and finally, allow staff
         settings.IGNORE_STAFF = False
         self.assertTrue(ruleset.match_user(bob))
+
+        # test setting an invalid value
+        ruleset.user_filter_type = -1
+        self.assertFalse(ruleset.match_user(bob))
+        bob.is_staff = False
+        self.assertFalse(ruleset.match_user(bob))
+        self.assertFalse(ruleset.match_user(None))
+        self.assertFalse(ruleset.match_user(AnonymousUser()))
 
 
 class ProfilingRecordModelTests(TestCase):
@@ -256,7 +264,7 @@ class ProfilingMiddlewareTests(TestCase):
 
     def test_match_rules(self):
         # rule1 - to match all users
-        r1 = RuleSet(enabled=True, include_anonymous=True)
+        r1 = RuleSet()
         self.assertTrue(r1.match_user(self.anon))
 
         request = self.factory.get('/')
@@ -273,6 +281,7 @@ class ProfilingMiddlewareTests(TestCase):
         # now change the user_groups so we no longer get a match
         request.user = self.bob
         r1.uri_regex = ""
+        r1.user_filter_type = RuleSet.USER_FILTER_GROUP
         r1.user_group_filter = "test"
         self.assertEqual(profiler.match_rules(request, [r1]), [])
         # add bob to the group
@@ -308,7 +317,7 @@ class ProfilingMiddlewareTests(TestCase):
         self.assertFalse(hasattr(request, 'profiler_record'))
 
         # try matching a rule, anc checking response values
-        r1 = RuleSet(enabled=True, include_anonymous=True)
+        r1 = RuleSet()
         r1.save()
         request.profiler_record = ProfilingRecord().start()
         response = profiler.process_response(request, MockResponse(200))
@@ -323,7 +332,7 @@ class ProfilingMiddlewareTests(TestCase):
         profiler = ProfilingMiddleware()
 
         # try matching a rule, anc checking response values
-        r1 = RuleSet(enabled=True, include_anonymous=True)
+        r1 = RuleSet()
         r1.save()
 
         self.signal_received = False
