@@ -57,17 +57,19 @@ class ProfilingMiddleware(object):
             del request.profiler
             return response
 
-        request.profiler.set_request(request)
+        # extract properties from request and response for storing later
+        profiler = request.profiler.set_request(request).set_response(response)
+
         # send signal so that receivers can intercept profiler
         signal_responses = request_profile_complete.send(
             sender=self.__class__,
             request=request,
             response=response,
-            instance=request.profiler
+            instance=profiler
         )
         # if any signal receivers have returned False, then do **not** save
         if all([s[1] for s in signal_responses]):
-            request.profiler.set_response(response).stop().save()
+            profiler.stop().save()
         else:
             # one of the signals said "no", so chuck it away.
             del request.profiler
