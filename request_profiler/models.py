@@ -44,20 +44,21 @@ class RuleSet(models.Model):
         blank=True,
         default="",
         max_length=100,
-        help_text=u"Regex used to filter by request URI."
+        help_text=u"Regex used to filter by request URI.",
+        verbose_name=u"Request path regex"
     )
     user_filter_type = models.IntegerField(
         default=0,
         choices=USER_FILTER_CHOICES,
         help_text=u"Filter requests by type of user.",
-        verbose_name=u"User filter."
+        verbose_name=u"User type filter"
     )
     user_group_filter = models.CharField(
         blank=True,
         default="",
         max_length=100,
         help_text=u"Group used to filter users.",
-        verbose_name=u"User Group Filter"
+        verbose_name=u"User group filter"
     )
     # use the custom model manager
     objects = RuleSetManager()
