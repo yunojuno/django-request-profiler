@@ -8,9 +8,9 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name="django-request-profiler",
-    version="0.3.2",
+    version="0.4",
     packages=['request_profiler', 'request_profiler.migrations'],
-    install_requires=['django>=1.6', 'south>=1.0'],
+    install_requires=['django==1.6.5', 'south==1.0'],
     include_package_data=True,
     description='Django Request Profiler - a simple profiler for timing HTTP requests.',
     long_description=README,
