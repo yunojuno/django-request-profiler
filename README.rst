@@ -3,6 +3,10 @@ django-request-profiler
 
 A very simple request profiler for Django.
 
+NB The current version is pinned to **Django 1.6.5** owing to a dependency on South
+migrations. As soon as we upgrade to Django 1.7 the South dependency will be
+removed, and the app will be released as v1.0.
+
 Introduction
 ------------
 

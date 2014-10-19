@@ -6,12 +6,11 @@ from django.contrib.auth.models import User, AnonymousUser, Group
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.test import TestCase, RequestFactory
-from django.test.utils import override_settings
 
+from request_profiler import settings
 from request_profiler.middleware import ProfilingMiddleware
 from request_profiler.models import RuleSet, RuleSetManager, ProfilingRecord
 from request_profiler.signals import request_profile_complete
-from request_profiler import settings
 
 
 def dummy_view_func(request, **kwargs):
@@ -204,6 +203,9 @@ class ProfilingRecordModelTests(TestCase):
         ]
         for p in props:
             self.assertEqual(getattr(profile, p[0]), p[1])
+        self.assertIsNotNone(unicode(profile))
+        self.assertIsNotNone(str(profile))
+        self.assertIsNotNone(repr(profile))
 
     def test_start(self):
         profile = ProfilingRecord().start()
