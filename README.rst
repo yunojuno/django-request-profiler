@@ -76,8 +76,8 @@ this means that any user with ``is_staff==True`` will be ignored.
 Once an incoming request has been evaluated by all of the rules, if any match,
 the request can be saved. There is, however, one final check which is used to
 provide ultimate control over the filtering. Before the profile record is saved,
-a signal is sent (``request_profile_complete``). If any signal receivers return
-False, then the profile is thrown away.
+a signal is sent (``request_profile_complete``). Any signal receiver can cancel
+the profile by calling the ``cancel()`` method on the instance.
 
 This signal can be used to hook in custom rules - for instance, restricting by
 IP, or user agent, or even custom properties.
@@ -96,7 +96,12 @@ For use as the app in Django project, use pip:
 Usage
 -----
 
-Once installed, add the app and middleware to your project’s settings file.
+Once installed, add the app and middleware to your project's settings file.
+In order to add the database tables, you should run the ``migrate`` command;
+
+.. code:: python
+
+    $ python manage.py migrate request_profiler
 
 NB the middleware must be the **first** item in ``MIDDLEWARE_CLASSES``.
 

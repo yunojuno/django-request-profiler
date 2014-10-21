@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # models definitions for request_profiler
+import logging
 import re
 
 from django.contrib.auth.models import User, AnonymousUser
@@ -9,6 +10,8 @@ from django.db import models
 from django.utils import timezone
 
 from request_profiler import settings
+
+logger = logging.getLogger(__name__)
 
 
 class RuleSetManager(models.Manager):
@@ -191,3 +194,19 @@ class ProfilingRecord(models.Model):
         self.end_ts = timezone.now()
         self.duration = (self.end_ts - self.start_ts).total_seconds()
         return self
+
+    def cancel(self):
+        """Cancels the profile by setting is_cancelled to True."""
+        self.start_ts = None
+        self.end_ts = None
+        self.duration = None
+        self.is_cancelled = True
+        return self
+
+    def capture(self):
+        """Call stop() and save() on the profile if is_cancelled is not True."""
+        if getattr(self, 'is_cancelled', False) is True:
+            logger.debug(u"%r has been cancelled.", self)
+            return self
+        else:
+            return self.stop().save()

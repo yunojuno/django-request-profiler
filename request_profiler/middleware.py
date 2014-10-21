@@ -54,6 +54,7 @@ class ProfilingMiddleware(object):
 
         # clean up after outselves
         if len(rules) == 0:
+            logger.debug(u"Deleting %r as request matches no live rules.", request.profiler)
             del request.profiler
             return response
 
@@ -61,17 +62,14 @@ class ProfilingMiddleware(object):
         profiler = request.profiler.set_request(request).set_response(response)
 
         # send signal so that receivers can intercept profiler
-        signal_responses = request_profile_complete.send(
+        request_profile_complete.send(
             sender=self.__class__,
             request=request,
             response=response,
             instance=profiler
         )
-        # if any signal receivers have returned False, then do **not** save
-        if all([s[1] for s in signal_responses]):
-            profiler.stop().save()
-        else:
-            # one of the signals said "no", so chuck it away.
-            del request.profiler
+        # if any signal receivers have called cancel() on the profiler, then
+        # this method will _not_ save it.
+        profiler.capture()
 
         return response

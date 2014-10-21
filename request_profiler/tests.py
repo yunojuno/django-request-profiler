@@ -229,6 +229,34 @@ class ProfilingRecordModelTests(TestCase):
         self.assertIsNotNone(profile.duration)
         self.assertTrue(profile.duration > 0)
 
+    def test_cancel(self):
+        profile = ProfilingRecord().cancel()
+        self.assertIsNone(profile.start_ts)
+        self.assertIsNone(profile.end_ts)
+        self.assertIsNone(profile.duration)
+        self.assertTrue(profile.is_cancelled)
+        # same thing, but this time post-start
+        profile = ProfilingRecord().start().cancel()
+        self.assertIsNone(profile.start_ts)
+        self.assertIsNone(profile.end_ts)
+        self.assertIsNone(profile.duration)
+        self.assertTrue(profile.is_cancelled)
+
+    def test_capture(self):
+        # repeat, but this time cancel before capture
+        profile = ProfilingRecord()
+        profile.start().set_response(MockResponse(200)).capture()
+        self.assertIsNotNone(profile.start_ts)
+        self.assertIsNotNone(profile.end_ts)
+        self.assertIsNotNone(profile.duration)
+        self.assertIsNotNone(profile.id)
+
+        profile = ProfilingRecord().cancel().capture()
+        self.assertIsNone(profile.start_ts)
+        self.assertIsNone(profile.end_ts)
+        self.assertIsNone(profile.duration)
+        self.assertIsNone(profile.id)
+
     def test_elapsed(self):
         profile = ProfilingRecord()
         with self.assertRaises(AssertionError):
@@ -335,21 +363,22 @@ class ProfilingMiddlewareTests(TestCase):
     def test_process_response(self):
 
         request = self.factory.get('/')
-        profiler = ProfilingMiddleware()
+        middleware = ProfilingMiddleware()
         with self.assertRaises(AssertionError):
-            profiler.process_response(request, None)
+            middleware.process_response(request, None)
 
         # try no matching rules
         request.profiler = ProfilingRecord().start()
-        response = profiler.process_response(request, MockResponse(200))
+        response = middleware.process_response(request, MockResponse(200))
         self.assertEqual(response.status_code, 200)
         self.assertFalse(hasattr(request, 'profiler'))
 
-        # try matching a rule, anc checking response values
+        # try matching a rule, and checking response values
         r1 = RuleSet()
         r1.save()
         request.profiler = ProfilingRecord().start()
-        response = profiler.process_response(request, MockResponse(200))
+        response = middleware.process_response(request, MockResponse(200))
+        self.assertIsNotNone(response)
         self.assertTrue(request.profiler.response_status_code, response.status_code)
         self.assertTrue(response['X-Profiler-Duration'], request.profiler.duration)
 
@@ -367,11 +396,12 @@ class ProfilingMiddlewareTests(TestCase):
 
         def on_request_profile_complete(sender, **kwargs):
             self.signal_received = True
-            return False
+            kwargs.get('instance').cancel()
 
         request_profile_complete.connect(on_request_profile_complete)
         profiler.process_response(request, MockResponse(200))
         # because we returned False from the signal receiver,
         # we should have stopped profiling.
         self.assertTrue(self.signal_received)
-        self.assertFalse(hasattr(request, 'profiler'))
+        # because we called cancel(), the record is not saved.
+        self.assertIsNone(request.profiler.id)
