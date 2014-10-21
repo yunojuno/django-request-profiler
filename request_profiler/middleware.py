@@ -1,8 +1,9 @@
-    # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import logging
 
 from django.contrib.auth.models import AnonymousUser
 
+from request_profiler import settings
 from request_profiler.models import RuleSet, ProfilingRecord
 from request_profiler.signals import request_profile_complete
 
@@ -49,6 +50,13 @@ class ProfilingMiddleware(object):
         assert getattr(request, 'profiler', None) is not None, (
             u"Request has no profiler attached."
         )
+
+        # call the global exclude first, as there's no point continuing if this
+        # says no.
+        if settings.GLOBAL_EXCLUDE_FUNC(request) is False:
+            del request.profiler
+            return response
+
         # see if we have any matching rules
         rules = self.match_rules(request, RuleSet.objects.live_rules())
 
@@ -71,5 +79,6 @@ class ProfilingMiddleware(object):
         # if any signal receivers have called cancel() on the profiler, then
         # this method will _not_ save it.
         profiler.capture()
+        profiler.set_response(response)
 
         return response

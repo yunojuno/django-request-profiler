@@ -6,6 +6,7 @@ from django.contrib.auth.models import User, AnonymousUser, Group
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.test import TestCase, RequestFactory
+from django.test.utils import override_settings
 
 from request_profiler import settings
 from request_profiler.middleware import ProfilingMiddleware
@@ -162,15 +163,6 @@ class RuleSetModelTests(TestCase):
         self.assertTrue(bob.groups.filter(name="test").exists())
         self.assertTrue(ruleset.match_user(bob))
 
-        # now make him is_staff, and check that he's no longer allowed
-        bob.is_staff = True
-        self.assertTrue(settings.IGNORE_STAFF)
-        self.assertFalse(ruleset.match_user(bob))
-
-        # and finally, allow staff
-        settings.IGNORE_STAFF = False
-        self.assertTrue(ruleset.match_user(bob))
-
         # test setting an invalid value
         ruleset.user_filter_type = -1
         self.assertFalse(ruleset.match_user(bob))
@@ -245,11 +237,13 @@ class ProfilingRecordModelTests(TestCase):
     def test_capture(self):
         # repeat, but this time cancel before capture
         profile = ProfilingRecord()
-        profile.start().set_response(MockResponse(200)).capture()
+        response = MockResponse(200)
+        profile.start().set_response(response).capture()
         self.assertIsNotNone(profile.start_ts)
         self.assertIsNotNone(profile.end_ts)
         self.assertIsNotNone(profile.duration)
         self.assertIsNotNone(profile.id)
+        self.assertEqual(response['X-Profiler-Duration'], profile.duration)
 
         profile = ProfilingRecord().cancel().capture()
         self.assertIsNone(profile.start_ts)
@@ -274,6 +268,7 @@ class ProfilingRecordModelTests(TestCase):
         profile = ProfilingRecord()
 
         profile.set_request(request)
+        self.assertEqual(profile.request, request)
         self.assertEqual(profile.http_method, request.method)
         self.assertEqual(profile.request_uri, request.path)
         # for some reason user-agent is a tuple - need to read specs!
@@ -283,26 +278,23 @@ class ProfilingRecordModelTests(TestCase):
 
         # test that we can set the session
         request.session = MockSession("test-session-key")
-        profile = ProfilingRecord()
-        profile.set_request(request)
+        profile = ProfilingRecord().set_request(request)
         self.assertEqual(profile.session_key, "test-session-key")
 
         # test that we can set the user
         request.user = User.objects.create_user("bob")
-        profile = ProfilingRecord()
-        profile.set_request(request)
+        profile = ProfilingRecord().set_request(request)
         self.assertEqual(profile.user, request.user)
 
         # but we do not save anonymous users
         request.user = AnonymousUser()
-        profile = ProfilingRecord()
-        profile.set_request(request)
+        profile = ProfilingRecord().set_request(request)
         self.assertEqual(profile.user, None)
 
     def test_set_response(self):
         response = MockResponse(200)
-        profiler = ProfilingRecord().start()
-        profiler.set_response(response)
+        profiler = ProfilingRecord().start().set_response(response)
+        self.assertEqual(profiler.response, response)
         self.assertEqual(profiler.response_status_code, 200)
         self.assertEqual(profiler.response_content_length, 13)
 
@@ -328,27 +320,26 @@ class ProfilingMiddlewareTests(TestCase):
         request.user = self.anon
         self.assertTrue(r1.match_uri, request.path)
 
-        profiler = ProfilingMiddleware()
-        self.assertEqual(profiler.match_rules(request, [r1]), [r1])
+        middleware = ProfilingMiddleware()
+        self.assertEqual(middleware.match_rules(request, [r1]), [r1])
 
         # now change the uri_regex so we no longer get a match
         r1.uri_regex = "^xyz$"
-        self.assertEqual(profiler.match_rules(request, [r1]), [])
+        self.assertEqual(middleware.match_rules(request, [r1]), [])
 
         # now change the user_groups so we no longer get a match
         request.user = self.bob
         r1.uri_regex = ""
         r1.user_filter_type = RuleSet.USER_FILTER_GROUP
         r1.user_group_filter = "test"
-        self.assertEqual(profiler.match_rules(request, [r1]), [])
+        self.assertEqual(middleware.match_rules(request, [r1]), [])
         # add bob to the group
         self.bob.groups.add(self.test_group)
-        self.assertEqual(profiler.match_rules(request, [r1]), [r1])
+        self.assertEqual(middleware.match_rules(request, [r1]), [r1])
 
     def test_process_request(self):
         request = self.factory.get('/')
-        profiler = ProfilingMiddleware()
-        profiler.process_request(request)
+        ProfilingMiddleware().process_request(request)
         # this implicitly checks that the profile is attached,
         # and that start() has been called.
         self.assertIsNotNone(request.profiler.elapsed)
@@ -356,8 +347,7 @@ class ProfilingMiddlewareTests(TestCase):
     def test_process_view(self):
         request = self.factory.get('/')
         request.profiler = ProfilingRecord()
-        profiler = ProfilingMiddleware()
-        profiler.process_view(request, dummy_view_func, [], {})
+        ProfilingMiddleware().process_view(request, dummy_view_func, [], {})
         self.assertEqual(request.profiler.view_func_name, "dummy_view_func")
 
     def test_process_response(self):
@@ -386,7 +376,7 @@ class ProfilingMiddlewareTests(TestCase):
 
         request = self.factory.get('/')
         request.profiler = ProfilingRecord().start()
-        profiler = ProfilingMiddleware()
+        middleware = ProfilingMiddleware()
 
         # try matching a rule, anc checking response values
         r1 = RuleSet()
@@ -399,9 +389,29 @@ class ProfilingMiddlewareTests(TestCase):
             kwargs.get('instance').cancel()
 
         request_profile_complete.connect(on_request_profile_complete)
-        profiler.process_response(request, MockResponse(200))
+        middleware.process_response(request, MockResponse(200))
         # because we returned False from the signal receiver,
         # we should have stopped profiling.
         self.assertTrue(self.signal_received)
         # because we called cancel(), the record is not saved.
         self.assertIsNone(request.profiler.id)
+
+    def test_global_exclude_function(self):
+
+        # set the func to ignore everything
+        RuleSet().save()
+        request = self.factory.get('/')
+        request.profiler = ProfilingRecord().start()
+        middleware = ProfilingMiddleware()
+        # process normally, record is saved.
+        middleware.process_response(request, MockResponse(200))
+        self.assertIsNotNone(request.profiler.id)
+
+        # NB for some reason (prb. due to imports, the standard
+        # 'override_settings' decorator doesn't work here.)
+        settings.GLOBAL_EXCLUDE_FUNC = lambda x: False
+        request.profiler = ProfilingRecord().start()
+        # process now, and profiler is cancelled
+        middleware.process_response(request, MockResponse(200))
+        self.assertFalse(hasattr(request, 'profiler'))
+        settings.GLOBAL_EXCLUDE_FUNC = lambda x: True

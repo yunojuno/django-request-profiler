@@ -163,6 +163,7 @@ class ProfilingRecord(models.Model):
 
     def set_request(self, request):
         """Extract values from HttpRequest and store locally."""
+        self.request = request
         self.http_method = request.method
         self.request_uri = request.path
         self.http_user_agent = request.META.get('HTTP_USER_AGENT'),
@@ -183,9 +184,9 @@ class ProfilingRecord(models.Model):
 
     def set_response(self, response):
         """Extract values from HttpResponse and store locally."""
+        self.response = response
         self.response_status_code = response.status_code
         self.response_content_length = len(response.content)
-        response['X-Profiler-Duration'] = self.duration or self.elapsed
         return self
 
     def stop(self):
@@ -193,6 +194,8 @@ class ProfilingRecord(models.Model):
         assert self.start_ts is not None, u"You must 'start' before you can 'stop'"
         self.end_ts = timezone.now()
         self.duration = (self.end_ts - self.start_ts).total_seconds()
+        if hasattr(self, 'response'):
+            self.response['X-Profiler-Duration'] = self.duration
         return self
 
     def cancel(self):
