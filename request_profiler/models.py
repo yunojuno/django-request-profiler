@@ -99,9 +99,6 @@ class RuleSet(models.Model):
         # treat no user (i.e. has not been added) as AnonymousUser()
         user = user or AnonymousUser()
 
-        if user.is_staff and settings.IGNORE_STAFF:
-            return False
-
         if self.user_filter_type == RuleSet.USER_FILTER_ALL:
             return True
 
