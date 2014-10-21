@@ -63,31 +63,61 @@ defines two core matching methods:
 which is used match the incoming request path. If the url matches, the request
 can be profiled.
 
-2. user_group - in order to profile a subset of users, you can supply the name
-of a Django ``Group`` against which users are matched. If they are in the group,
-the request can be profiled.
+2. user_filter_type - there are three choices here - profile all users, profile
+only authenticated users, and profile authenticated users belonging to a given
+Group - e.g. create a groups called "profiling" and add anyone you want to
+profile.
 
-In addition, each RuleSet has an ``include_anonymous`` flag - as you may
-want to ignore unauthenticated users.
+These filter properties are an AND (must pass the uri and user filter), but the
+rules as a group are an OR - so if a request passes all the filters in any rule,
+then it's profiled.
 
-There is a single global setting, ``IGNORE_STAFF``, which is True by default -
-this means that any user with ``is_staff==True`` will be ignored.
+These filters are pretty blunt, and there are plenty of use cases where you may
+want more sophisticated control over the profiling. There are two ways to do
+this. The first is a setting, ``REQUEST_PROFILER_GLOBAL_EXCLUDE_FUNC``, which is
+a function that takes a request as the single argument, and must return True or
+False. If it returns False, the profile is cancelled, irrespective of any rules.
+The primary use case for this is to exclude common requests that you are not
+interested in, e.g. from search engine bots, or from Admin users etc. The
+default for this is a ``lambda r: True``, which lets all requests through, but
+the recommended default is ``lambda r: not r.is_staff``, to prevent admin user
+requests from being profiled.
 
-Once an incoming request has been evaluated by all of the rules, if any match,
-the request can be saved. There is, however, one final check which is used to
-provide ultimate control over the filtering. Before the profile record is saved,
-a signal is sent (``request_profile_complete``). Any signal receiver can cancel
-the profile by calling the ``cancel()`` method on the instance.
+The second control is via the ``cancel()`` method on the ``ProfilingRecord``,
+which is accessible via the ``request_profile_complete`` signal. By hooking
+in to this signal you can add additional processing, and optionally cancel
+the profiler. A typical use case for this is to log requests that have
+exceeded a set request duration threshold. In a high volume environment you
+may want to, for instance, only profile a random subset of all requests.
 
-This signal can be used to hook in custom rules - for instance, restricting by
-IP, or user agent, or even custom properties.
+.. code:: python
+
+    from django.dispatch import receiver
+    from request_profiler.signals import request_profile_complete
+
+    @receiver(request_profiler_complete)
+    def on_request_profile_complete(sender, **kwargs):
+        profiler = kwargs.get('instance')
+        if profiler.elapsed > 2:
+            # log long-running requests
+            # NB please don't use 'print' for real - use logging
+            print u"Long-running request warning: %s" % profiler
+        else:
+            # calling cancel means that it won't be saved to the db
+            profiler.cancel()
+
 
 Installation
 ------------
 
+**Important: this app currently relies on South migrations and is
+therefore incompatible with Django 1.7. The setup.py is locked to
+Django 1.6.5, against which is has been tested - it should work with
+earlier versions, but you use at your own risk.**
+
 For use as the app in Django project, use pip:
 
-.. code:: shell
+.. code:: bash
 
     $ pip install django-request—profiler
     # For hacking on the project, pull from Git:
@@ -99,7 +129,7 @@ Usage
 Once installed, add the app and middleware to your project's settings file.
 In order to add the database tables, you should run the ``migrate`` command;
 
-.. code:: python
+.. code:: bash
 
     $ python manage.py migrate request_profiler
 
