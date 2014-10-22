@@ -117,11 +117,38 @@ earlier versions, but you use at your own risk.**
 
 For use as the app in Django project, use pip:
 
-.. code:: bash
+.. code:: shell
 
     $ pip install django-request—profiler
     # For hacking on the project, pull from Git:
     $ git pull git@github.com:yunojuno/django-request-profiler.git
+
+Tests
+-----
+
+The app installer contains a test suite that can be run using the Django
+test runner:
+
+.. code:: shell
+
+    $ pip install -r requirements.txt
+    $ python manage.py test test_app request_profiler
+
+If you want to test coverage you'll need to add some dependencies:
+
+.. code:: shell
+
+    $ pip install coverage django-coverage
+    $ python manage.py test_coverage test_app request_profiler
+
+The tests also run using `tox <https://testrun.org/tox/latest/>`_:
+
+.. code:: shell
+
+    $ pip install tox
+    $ tox
+
+The tests run on `Travis <https://travis-ci.org/yunojuno/django-request-profiler>`_ on commits to master.
 
 Usage
 -----

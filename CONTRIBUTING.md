@@ -15,7 +15,7 @@ covered by an existing issue.
 2. If you want to fix something, or add a new feature / backend etc. then:
 
 * Fork the repo
-* Run the tests locally: `python manage.py test_coverage test_app request_profiler`
+* Run the tests locally: `python manage.py test test_app request_profiler`
 * Create a local branch (ideally named after the related issue,
   beginning with the issue number, e.g. `1-add-template-timings`)
 * Write some code

@@ -62,18 +62,18 @@ LOGGING = {
         '': {
             'handlers': ['console'],
             'propagate': True,
-            'level': 'DEBUG',
+            'level': 'ERROR',
         },
-        'django': {
-            'handlers': ['console'],
-            'propagate': True,
-            'level': 'INFO',
-        },
-        'request_profiler': {
-            'handlers': ['console'],
-            'propagate': True,
-            'level': 'DEBUG',
-        },
+        # 'django': {
+        #     'handlers': ['console'],
+        #     'propagate': True,
+        #     'level': 'WARNING',
+        # },
+        # 'request_profiler': {
+        #     'handlers': ['console'],
+        #     'propagate': True,
+        #     'level': 'WARNING',
+        # },
     }
 }
 
@@ -97,8 +97,8 @@ COVERAGE_MODULE_EXCLUDES = [
     'request_profiler.admin',
     'request_profiler.signals',
 ]
-COVERAGE_REPORT_HTML_OUTPUT_DIR = 'coverage/html'
-COVERAGE_USE_STDOUT = True
+# COVERAGE_REPORT_HTML_OUTPUT_DIR = 'coverage/html'
+# COVERAGE_USE_STDOUT = True
 
 # turn off caching for tests
 REQUEST_PROFILER_RULESET_CACHE_TIMEOUT = 0
