@@ -7,6 +7,9 @@ NB The current version is pinned to **Django 1.6.5** owing to a dependency on So
 migrations. As soon as we upgrade to Django 1.7 the South dependency will be
 removed, and the app will be released as v1.0.
 
+.. image:: https://travis-ci.org/yunojuno/django-inbound-email.svg?branch=master
+    :target: https://travis-ci.org/yunojuno/django-inbound-email
+
 Introduction
 ------------
 
