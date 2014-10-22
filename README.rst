@@ -34,9 +34,8 @@ Requirements
 4. Record basic request metadata:
 
 - Duration (request-response)
-- URL
-- Source IP
-- User-Agent
+- Request path, remote addr, user-agent
+- Response status code, content length
 - View function
 - Django user and session keys (if appropriate)
 
@@ -82,9 +81,7 @@ a function that takes a request as the single argument, and must return True or
 False. If it returns False, the profile is cancelled, irrespective of any rules.
 The primary use case for this is to exclude common requests that you are not
 interested in, e.g. from search engine bots, or from Admin users etc. The
-default for this is a ``lambda r: True``, which lets all requests through, but
-the recommended default is ``lambda r: not r.is_staff``, to prevent admin user
-requests from being profiled.
+default for this function is to prevent admin user requests from being profiled.
 
 The second control is via the ``cancel()`` method on the ``ProfilingRecord``,
 which is accessible via the ``request_profile_complete`` signal. By hooking
@@ -130,7 +127,7 @@ Usage
 -----
 
 Once installed, add the app and middleware to your project's settings file.
-In order to add the database tables, you should run the ``migrate`` command;
+In order to add the database tables, you should run the ``migrate`` command:
 
 .. code:: bash
 

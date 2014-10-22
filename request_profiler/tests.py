@@ -6,7 +6,6 @@ from django.contrib.auth.models import User, AnonymousUser, Group
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.test import TestCase, RequestFactory
-from django.test.utils import override_settings
 
 from request_profiler import settings
 from request_profiler.middleware import ProfilingMiddleware
