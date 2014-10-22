@@ -16,16 +16,16 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_coverage',
     'request_profiler',
     'test_app',
-    'south'
+    'south',
+    # uncomment to enable the coverage tests to run
+    # 'django_coverage',
 )
 
 MIDDLEWARE_CLASSES = [
     # this package's middleware
     'request_profiler.middleware.ProfilingMiddleware',
-
     # default django middleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
