@@ -9,4 +9,7 @@ RULESET_CACHE_TIMEOUT = getattr(settings, 'REQUEST_PROFILER_RULESET_CACHE_TIMEOU
 
 # This is a function that can be used to override all rules to exclude requests from profiling
 # e.g. you can use this to ignore staff, or search engine bots, etc.
-GLOBAL_EXCLUDE_FUNC = getattr(settings, 'REQUEST_PROFILER_GLOBAL_EXCLUDE_FUNC', lambda r: True)
+GLOBAL_EXCLUDE_FUNC = getattr(
+    settings, 'REQUEST_PROFILER_GLOBAL_EXCLUDE_FUNC',
+    lambda r: not (hasattr(r, 'user') and r.user.is_staff)
+)
