@@ -3,10 +3,6 @@ django-request-profiler
 
 A very simple request profiler for Django.
 
-NB The current version is pinned to **Django 1.6.5** owing to a dependency on South
-migrations. As soon as we upgrade to Django 1.7 the South dependency will be
-removed, and the app will be released as v1.0.
-
 .. image:: https://travis-ci.org/yunojuno/django-request-profiler.svg?branch=master
     :target: https://travis-ci.org/yunojuno/django-request-profiler
 
@@ -110,10 +106,9 @@ may want to, for instance, only profile a random subset of all requests.
 Installation
 ------------
 
-**Important: this app currently relies on South migrations and is
-therefore incompatible with Django 1.7. The setup.py is locked to
-Django 1.6.5, against which is has been tested - it should work with
-earlier versions, but you use at your own risk.**
+This app now supports both Django 1.7, with its new migrations framework,
+and also pre-1.7 Django + South, but South must be 1.0.x, in order to
+know to look in `south_migrations` instead of `migrations`.
 
 For use as the app in Django project, use pip:
 

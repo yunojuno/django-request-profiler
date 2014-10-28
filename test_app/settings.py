@@ -18,7 +18,6 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'request_profiler',
     'test_app',
-    'south',
     # uncomment to enable the coverage tests to run
     # 'django_coverage',
 )
