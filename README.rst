@@ -15,7 +15,7 @@ There are a lot of very good, and complete, python and django profilers
 available. They can give you detailed stack traces and function call timings,
 output all the SQL statements that have been run, the templates that have been
 rendered, and the state of any / all variables along the way. These tools are
-great for optimisation (sic) of your application, once you have decided that the
+great for optimisation of your application, once you have decided that the
 time is right.
 
 ``django-request-profiler`` is not intended to help you optimise, but to help
