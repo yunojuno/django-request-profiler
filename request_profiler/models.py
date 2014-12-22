@@ -167,8 +167,8 @@ class ProfilingRecord(models.Model):
         # X-Forwarded-For is used by convention when passing through
         # load balancers etc., as the REMOTE_ADDR is rewritten in transit
         self.remote_addr = (
-            request.META.get('X-Forwarded-For')
-            if 'X-Forwarded-For' in request.META
+            request.META.get('HTTP_X_FORWARDED_FOR')
+            if 'HTTP_X_FORWARDED_FOR' in request.META
             else request.META.get('REMOTE_ADDR')
         )
         # these two require middleware, so may not exist
