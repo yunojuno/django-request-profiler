@@ -23,13 +23,14 @@ admin.site.register(
 class ProfilingRecordAdmin(admin.ModelAdmin):
 
     list_display = (
-        'user',
         'start_ts',
+        'user',
+        'session_key',
+        'remote_addr',
         'http_method',
         'request_uri',
         'view_func_name',
         'response_status_code',
-        'response_content_length',
         'duration',
     )
 

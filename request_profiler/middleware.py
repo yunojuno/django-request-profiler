@@ -34,6 +34,13 @@ class ProfilingMiddleware(object):
 
     def process_view(self, request, view_func, view_args, view_kwargs):
         """Add view_func to the profiler info."""
+        # force the creation of a valid session by saving it.
+        if (
+            hasattr(request, 'session') and
+            request.session.session_key is None and
+            settings.STORE_ANONYMOUS_SESSIONS is True
+        ):
+            request.session.save()
         request.profiler.view_func_name = view_func.__name__
 
     def process_response(self, request, response):

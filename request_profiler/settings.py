@@ -13,3 +13,6 @@ GLOBAL_EXCLUDE_FUNC = getattr(
     settings, 'REQUEST_PROFILER_GLOBAL_EXCLUDE_FUNC',
     lambda r: not (hasattr(r, 'user') and r.user.is_staff)
 )
+
+# if True (default) then store sessions even for anonymous users
+STORE_ANONYMOUS_SESSIONS = getattr(settings, 'REQUEST_PROFILE_STORE_ANONYMOUS_SESSIONS', True)  # noqa
