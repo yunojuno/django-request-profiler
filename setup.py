@@ -8,7 +8,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name="django-request-profiler",
-    version="0.7.3",
+    version="0.8",
     packages=[
         'request_profiler',
         'request_profiler.migrations',
