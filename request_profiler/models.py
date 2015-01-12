@@ -126,7 +126,8 @@ class ProfilingRecord(models.Model):
     request_uri = models.URLField(verbose_name="Request path")
     remote_addr = models.CharField(max_length=100)
     http_user_agent = models.CharField(max_length=400)
-    view_func_name = models.CharField(max_length=100, verbose_name="View function")
+    http_referer = models.CharField(max_length=400, default=u"")
+    view_func_name = models.CharField(max_length=100, verbose_name="View function")  # noqa
     response_status_code = models.IntegerField()
     response_content_length = models.IntegerField()
 
@@ -163,7 +164,10 @@ class ProfilingRecord(models.Model):
         self.request = request
         self.http_method = request.method
         self.request_uri = request.path
-        self.http_user_agent = request.META.get('HTTP_USER_AGENT'),
+        self.http_user_agent = request.META.get('HTTP_USER_AGENT', u'')[:400],
+        # we care about the domain more than the URL itself, so truncating
+        # doesn't lose much useful information
+        self.http_referer = request.META.get('HTTP_REFERER', u'')[:400]
         # X-Forwarded-For is used by convention when passing through
         # load balancers etc., as the REMOTE_ADDR is rewritten in transit
         self.remote_addr = (
@@ -188,7 +192,7 @@ class ProfilingRecord(models.Model):
 
     def stop(self):
         """Set end_ts and duration from current datetime."""
-        assert self.start_ts is not None, u"You must 'start' before you can 'stop'"
+        assert self.start_ts is not None, u"You must 'start' before you can 'stop'"  # noqa
         self.end_ts = timezone.now()
         self.duration = (self.end_ts - self.start_ts).total_seconds()
         if hasattr(self, 'response'):
@@ -196,7 +200,7 @@ class ProfilingRecord(models.Model):
         return self
 
     def cancel(self):
-        """Cancels the profile by setting is_cancelled to True."""
+        """Cancel the profile by setting is_cancelled to True."""
         self.start_ts = None
         self.end_ts = None
         self.duration = None
@@ -204,7 +208,7 @@ class ProfilingRecord(models.Model):
         return self
 
     def capture(self):
-        """Call stop() and save() on the profile if is_cancelled is not True."""
+        """Call stop() and save() on the profile if is_cancelled is False."""
         if getattr(self, 'is_cancelled', False) is True:
             logger.debug(u"%r has been cancelled.", self)
             return self

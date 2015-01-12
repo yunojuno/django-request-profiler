@@ -26,7 +26,7 @@ class ProfilingMiddleware(object):
     def match_rules(self, request, rules):
         """Return subset of a list of rules that match a request."""
         user = getattr(request, 'user', AnonymousUser())
-        return [r for r in rules if r.match_uri(request.path) and r.match_user(user)]
+        return [r for r in rules if r.match_uri(request.path) and r.match_user(user)]  # noqa
 
     def process_request(self, request):
         """Start profiling."""
@@ -69,7 +69,7 @@ class ProfilingMiddleware(object):
 
         # clean up after outselves
         if len(rules) == 0:
-            logger.debug(u"Deleting %r as request matches no live rules.", request.profiler)
+            logger.debug(u"Deleting %r as request matches no live rules.", request.profiler)  # noqa
             del request.profiler
             return response
 

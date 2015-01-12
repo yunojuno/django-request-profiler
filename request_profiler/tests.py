@@ -189,6 +189,7 @@ class ProfilingRecordModelTests(TestCase):
             ('request_uri', ""),
             ('remote_addr', ""),
             ('http_user_agent', ""),
+            ('http_referer', ""),
             ('view_func_name', ""),
             ('response_status_code', None),
         ]
@@ -264,6 +265,7 @@ class ProfilingRecordModelTests(TestCase):
         factory = RequestFactory()
         request = factory.get("/test")
         request.META['HTTP_USER_AGENT'] = "test-browser"
+        request.META['HTTP_REFERER'] = "google.com"
         profile = ProfilingRecord()
 
         profile.set_request(request)
@@ -272,6 +274,7 @@ class ProfilingRecordModelTests(TestCase):
         self.assertEqual(profile.request_uri, request.path)
         # for some reason user-agent is a tuple - need to read specs!
         self.assertEqual(profile.http_user_agent, ("test-browser",))
+        self.assertEqual(profile.http_referer, "google.com")
         self.assertEqual(profile.session_key, "")
         self.assertEqual(profile.user, None)
 
