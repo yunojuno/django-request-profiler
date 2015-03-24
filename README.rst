@@ -114,7 +114,7 @@ For use as the app in Django project, use pip:
 
 .. code:: shell
 
-    $ pip install django-request—profiler
+    $ pip install django-request-profiler
     # For hacking on the project, pull from Git:
     $ git pull git@github.com:yunojuno/django-request-profiler.git
 
