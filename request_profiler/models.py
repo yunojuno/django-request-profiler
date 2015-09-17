@@ -8,6 +8,7 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
+from django.conf import settings as django_settings
 
 from request_profiler import settings
 
@@ -117,7 +118,7 @@ class RuleSet(models.Model):
 class ProfilingRecord(models.Model):
 
     """Record of a request and its response."""
-    user = models.ForeignKey(User, null=True, blank=True)
+    user = models.ForeignKey(django_settings.AUTH_USER_MODEL, null=True, blank=True)
     session_key = models.CharField(blank=True, max_length=40)
     start_ts = models.DateTimeField(verbose_name="Request started at")
     end_ts = models.DateTimeField(verbose_name="Request ended at")
