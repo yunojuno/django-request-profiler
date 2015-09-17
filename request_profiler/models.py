@@ -16,11 +16,18 @@ logger = logging.getLogger(__name__)
 
 class RuleSetManager(models.Manager):
     """Custom model manager for RuleSet instances."""
+    def get_queryset_compat(self):
+        # Support the Django get_query_set -> get_queryset API change
+        get_queryset = (self.get_query_set
+                        if hasattr(self, 'get_query_set')
+                        else self.get_queryset)
+        return get_queryset()
+
     def live_rules(self):
         """Return enabled rules."""
         rulesets = cache.get(settings.RULESET_CACHE_KEY)
         if rulesets is None:
-            rulesets = self.get_queryset().filter(enabled=True)
+            rulesets = self.get_queryset_compat().filter(enabled=True)
             cache.set(settings.RULESET_CACHE_KEY, rulesets, settings.RULESET_CACHE_TIMEOUT)
         return rulesets
 
