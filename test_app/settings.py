@@ -101,3 +101,5 @@ COVERAGE_MODULE_EXCLUDES = [
 
 # turn off caching for tests
 REQUEST_PROFILER_RULESET_CACHE_TIMEOUT = 0
+
+#AUTH_USER_MODEL = 'test_app.CustomUser'
