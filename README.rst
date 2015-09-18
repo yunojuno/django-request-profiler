@@ -143,6 +143,9 @@ The tests also run using `tox <https://testrun.org/tox/latest/>`_:
     $ pip install tox
     $ tox
 
+**Note: To test with a custom user model, you should override the default User model
+by providing a value for the AUTH_USER_MODEL (in testapp/settings) setting that references a custom model**
+
 The tests run on `Travis <https://travis-ci.org/yunojuno/django-request-profiler>`_ on commits to master.
 
 Usage
