@@ -172,7 +172,7 @@ class ProfilingRecord(models.Model):
         self.request = request
         self.http_method = request.method
         self.request_uri = request.path
-        self.http_user_agent = request.META.get('HTTP_USER_AGENT', u'')[:400],
+        self.http_user_agent = request.META.get('HTTP_USER_AGENT', u'')[:400]
         # we care about the domain more than the URL itself, so truncating
         # doesn't lose much useful information
         self.http_referer = request.META.get('HTTP_REFERER', u'')[:400]

@@ -16,6 +16,7 @@ from request_profiler.signals import request_profile_complete
 from test_app.models import CustomUser
 from test_app.utils import skipIfDefaultUser
 
+
 def dummy_view_func(request, **kwargs):
     "Fake function to pass into the process_view method."
     pass
@@ -191,8 +192,8 @@ class RuleSetModelTests(TestCase):
 
         # create a real user, but still no group filter
         bob = CustomUser.objects.create_user(
-                mobile_number="+886-999888777",
-                password="pass11"
+            mobile_number="+886-999888777",
+            password="pass11"
         )
         self.assertFalse(bob.groups.exists())
         self.assertFalse(bob.is_staff)
@@ -323,7 +324,7 @@ class ProfilingRecordModelTests(TestCase):
         self.assertEqual(profile.http_method, request.method)
         self.assertEqual(profile.request_uri, request.path)
         # for some reason user-agent is a tuple - need to read specs!
-        self.assertEqual(profile.http_user_agent, ("test-browser",))
+        self.assertEqual(profile.http_user_agent, "test-browser")
         self.assertEqual(profile.http_referer, "google.com")
         self.assertEqual(profile.session_key, "")
         self.assertEqual(profile.user, None)
@@ -357,7 +358,7 @@ class ProfilingRecordModelTests(TestCase):
         self.assertEqual(profile.http_method, request.method)
         self.assertEqual(profile.request_uri, request.path)
         # for some reason user-agent is a tuple - need to read specs!
-        self.assertEqual(profile.http_user_agent, ("test-browser",))
+        self.assertEqual(profile.http_user_agent, "test-browser")
         self.assertEqual(profile.http_referer, "google.com")
         self.assertEqual(profile.session_key, "")
         self.assertEqual(profile.user, None)
@@ -369,8 +370,8 @@ class ProfilingRecordModelTests(TestCase):
 
         # test that we can set the custom user
         request.user = CustomUser.objects.create_user(
-                mobile_number="+886-999888777",
-                password="pass11"
+            mobile_number="+886-999888777",
+            password="pass11"
         )
         profile = ProfilingRecord().set_request(request)
         self.assertEqual(profile.user, request.user)

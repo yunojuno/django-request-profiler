@@ -21,7 +21,7 @@ class ViewTests(TestCase):
         self.assertIsNone(record.user)
         # session is save even if user is Anonymous
         self.assertNotEqual(record.session_key, '')
-        self.assertEqual(record.http_user_agent, "(u'',)")
+        self.assertEqual(record.http_user_agent, "")
         self.assertEqual(record.http_referer, u'')
         self.assertEqual(record.http_method, 'GET')
         self.assertEqual(record.view_func_name, 'test_response')
@@ -35,7 +35,7 @@ class ViewTests(TestCase):
         record = ProfilingRecord.objects.get()
         self.assertIsNone(record.user)
         self.assertNotEqual(record.session_key, '')
-        self.assertEqual(record.http_user_agent, "(u'',)")
+        self.assertEqual(record.http_user_agent, "")
         self.assertEqual(record.http_referer, u'')
         self.assertEqual(record.http_method, 'GET')
         self.assertEqual(record.view_func_name, 'test_view')
