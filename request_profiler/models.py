@@ -3,7 +3,6 @@
 import logging
 import re
 
-import six
 from django.contrib.auth.models import User, AnonymousUser
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
