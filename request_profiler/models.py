@@ -3,6 +3,7 @@
 import logging
 import re
 
+import six
 from django.contrib.auth.models import User, AnonymousUser
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
@@ -143,7 +144,7 @@ class ProfilingRecord(models.Model):
         return u"Request for '%s' took %ss" % (self.request_uri, self.duration)
 
     def __str__(self):
-        return unicode(self).decode('utf-8')
+        return self.__unicode__()
 
     def __repr__(self):
         return (
