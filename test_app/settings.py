@@ -1,3 +1,4 @@
+from os import path
 
 DEBUG = True
 TEMPLATE_DEBUG = True
@@ -33,10 +34,24 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
 ]
 
-TEMPLATE_CONTEXT_PROCESSORS = [
-    'django.contrib.messages.context_processors.messages',
-    'django.contrib.auth.context_processors.auth',
+PROJECT_DIR = path.abspath(path.join(path.dirname(__file__)))
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            path.join(PROJECT_DIR, 'templates'),
+        ],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.contrib.messages.context_processors.messages',
+                'django.contrib.auth.context_processors.auth',
+            ]
+        }
+    }
 ]
+
 
 STATIC_URL = "/static/"
 
@@ -102,4 +117,4 @@ COVERAGE_MODULE_EXCLUDES = [
 # turn off caching for tests
 REQUEST_PROFILER_RULESET_CACHE_TIMEOUT = 0
 
-#AUTH_USER_MODEL = 'test_app.CustomUser'
+# AUTH_USER_MODEL = 'test_app.CustomUser'

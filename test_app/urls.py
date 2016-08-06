@@ -1,23 +1,24 @@
-from django.conf.urls import patterns, url, include
+from django.conf.urls import url, include
 from django.contrib import admin
+
+from test_app import views
 
 admin.autodiscover()
 
-urlpatterns = patterns(
-    'test_app.views',
+urlpatterns = [
     url(
         r'^test/response',
-        'test_response',
+        views.test_response,
         name='test_response'
     ),
     url(
         r'^test/view',
-        'test_view',
+        views.test_view,
         name='test_view'
     ),
     url(
         r'^test/404',
-        'test_404',
+        views.test_404,
         name='test_404'
     ),
 
@@ -25,4 +26,4 @@ urlpatterns = patterns(
         r'^admin/',
         include(admin.site.urls)
     ),
-)
+]
