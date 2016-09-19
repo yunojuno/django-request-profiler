@@ -5,6 +5,8 @@ A very simple request profiler for Django.
 
 .. image:: https://travis-ci.org/yunojuno/django-request-profiler.svg?branch=master
     :target: https://travis-ci.org/yunojuno/django-request-profiler
+.. image:: https://badge.fury.io/py/django-request-profiler.svg
+    :target: https://badge.fury.io/py/django-request-profiler
 
 Introduction
 ------------
