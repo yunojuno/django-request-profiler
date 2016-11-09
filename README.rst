@@ -15,7 +15,7 @@ A very simple request profiler for Django.
 Introduction
 ------------
 
-> Premature optimization is the root of all evil.
+    Premature optimization is the root of all evil.
 
 There are a lot of very good, and complete, python and django profilers
 available. They can give you detailed stack traces and function call timings,
