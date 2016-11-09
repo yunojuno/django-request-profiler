@@ -1,7 +1,7 @@
 .. image:: https://badge.fury.io/py/django-request-profiler.svg
     :target: https://badge.fury.io/py/django-request-profiler
 
-.. image:: https://travis-ci.org/yunojuno/django-request-profiler.svg?branch=master
+.. image:: https://travis-ci.org/yunojuno/django-request-profiler.svg
     :target: https://travis-ci.org/yunojuno/django-request-profiler
 
 .. image:: https://codecov.io/gh/yunojuno/django-request-profiler/branch/master/graph/badge.svg
