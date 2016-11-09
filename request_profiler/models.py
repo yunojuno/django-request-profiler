@@ -3,14 +3,14 @@
 import logging
 import re
 
-from django.contrib.auth.models import User, AnonymousUser
+from django.conf import settings as django_settings
+from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
-from django.conf import settings as django_settings
 
-from request_profiler import settings
+from . import settings
 
 logger = logging.getLogger(__name__)
 

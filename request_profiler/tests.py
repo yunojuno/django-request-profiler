@@ -8,10 +8,10 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase, RequestFactory
 from django.contrib.auth.tests.utils import skipIfCustomUser
 
-from request_profiler import settings
-from request_profiler.middleware import ProfilingMiddleware
-from request_profiler.models import RuleSet, RuleSetManager, ProfilingRecord
-from request_profiler.signals import request_profile_complete
+from . import settings
+from .middleware import ProfilingMiddleware
+from .models import RuleSet, RuleSetManager, ProfilingRecord
+from .signals import request_profile_complete
 
 from test_app.models import CustomUser
 from test_app.utils import skipIfDefaultUser

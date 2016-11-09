@@ -2,7 +2,7 @@
 # admin models for request_profiler app
 from django.contrib import admin
 
-from request_profiler import models
+from .models import RuleSet, ProfilingRecord
 
 
 class RuleSetAdmin(admin.ModelAdmin):
@@ -14,10 +14,7 @@ class RuleSetAdmin(admin.ModelAdmin):
         'user_group_filter',
     )
 
-admin.site.register(
-    models.RuleSet,
-    RuleSetAdmin
-)
+admin.site.register(RuleSet, RuleSetAdmin)
 
 
 class ProfilingRecordAdmin(admin.ModelAdmin):
@@ -34,7 +31,4 @@ class ProfilingRecordAdmin(admin.ModelAdmin):
         'duration',
     )
 
-admin.site.register(
-    models.ProfilingRecord,
-    ProfilingRecordAdmin
-)
+admin.site.register(ProfilingRecord, ProfilingRecordAdmin)

@@ -3,9 +3,9 @@ import logging
 
 from django.contrib.auth.models import AnonymousUser
 
-from request_profiler import settings
-from request_profiler.models import RuleSet, ProfilingRecord
-from request_profiler.signals import request_profile_complete
+from . import settings
+from .models import RuleSet, ProfilingRecord
+from .signals import request_profile_complete
 
 logger = logging.getLogger(__name__)
 

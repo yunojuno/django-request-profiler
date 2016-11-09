@@ -1,17 +1,21 @@
-django-request-profiler
+.. image:: https://badge.fury.io/py/django-request-profiler.svg
+    :target: https://badge.fury.io/py/django-request-profiler
+
+.. image:: https://travis-ci.org/yunojuno/django-request-profiler.svg
+    :target: https://travis-ci.org/yunojuno/django-request-profiler
+
+.. image:: https://codecov.io/gh/yunojuno/django-request-profiler/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/yunojuno/django-request-profiler
+
+Django Request Profiler
 =======================
 
 A very simple request profiler for Django.
 
-.. image:: https://travis-ci.org/yunojuno/django-request-profiler.svg?branch=master
-    :target: https://travis-ci.org/yunojuno/django-request-profiler
-.. image:: https://badge.fury.io/py/django-request-profiler.svg
-    :target: https://badge.fury.io/py/django-request-profiler
-
 Introduction
 ------------
 
-> Premature optimization is the root of all evil.
+    Premature optimization is the root of all evil.
 
 There are a lot of very good, and complete, python and django profilers
 available. They can give you detailed stack traces and function call timings,
@@ -37,7 +41,7 @@ Requirements
 - View function
 - Django user and session keys (if appropriate)
 
-It doesn’t need to record all the inner timing information - the goal is to have
+It doesn't need to record all the inner timing information - the goal is to have
 a system that can be used to monitor site response times, and to identify
 problem areas ahead of time.
 
@@ -108,9 +112,7 @@ may want to, for instance, only profile a random subset of all requests.
 Installation
 ------------
 
-This app now supports both Django 1.7, with its new migrations framework,
-and also pre-1.7 Django + South, but South must be 1.0.x, in order to
-know to look in `south_migrations` instead of `migrations`.
+This app has dropped support for Django < 1.7, since v0.11.
 
 For use as the app in Django project, use pip:
 

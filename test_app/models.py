@@ -1,11 +1,10 @@
 # Required to prevent coverage runner complaining
 # models definitions for testing
-from django.db import models
-from django.core import validators
-from django.utils import timezone
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import Group, Permission
-from django.contrib.auth.models import (AbstractBaseUser, PermissionsMixin,
-                                        BaseUserManager)
+from django.core import validators
+from django.db import models
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 
