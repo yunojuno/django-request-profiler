@@ -2,6 +2,11 @@
 import logging
 
 from django.contrib.auth.models import AnonymousUser
+try:
+    from django.utils.deprecation import MiddlewareMixin
+except ImportError:
+    # Fallback for Django < 1.10
+    MiddlewareMixin = object
 
 from . import settings
 from .models import RuleSet, ProfilingRecord
@@ -10,7 +15,7 @@ from .signals import request_profile_complete
 logger = logging.getLogger(__name__)
 
 
-class ProfilingMiddleware(object):
+class ProfilingMiddleware(MiddlewareMixin):
     """Middleware used to time request-response cycle.
 
     This middleware uses the `process_request` and `process_response`

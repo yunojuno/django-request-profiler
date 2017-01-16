@@ -1,4 +1,10 @@
+from distutils.version import StrictVersion
 from os import path
+
+import django
+
+
+DJANGO_VERSION = StrictVersion(django.get_version())
 
 DEBUG = True
 TEMPLATE_DEBUG = True
@@ -23,7 +29,7 @@ INSTALLED_APPS = (
     # 'django_coverage',
 )
 
-MIDDLEWARE_CLASSES = [
+ACTUAL_MIDDLEWARE_CLASSES = [
     # this package's middleware
     'request_profiler.middleware.ProfilingMiddleware',
     # default django middleware
@@ -33,6 +39,12 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 ]
+
+
+if DJANGO_VERSION < StrictVersion('1.10.0'):
+    MIDDLEWARE_CLASSES = ACTUAL_MIDDLEWARE_CLASSES
+else:
+    MIDDLEWARE = ACTUAL_MIDDLEWARE_CLASSES
 
 PROJECT_DIR = path.abspath(path.join(path.dirname(__file__)))
 
