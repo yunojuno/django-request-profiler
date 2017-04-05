@@ -245,7 +245,6 @@ class ProfilingRecordModelTests(TestCase):
         ]
         for p in props:
             self.assertEqual(getattr(profile, p[0]), p[1])
-        self.assertIsNotNone(unicode(profile))
         self.assertIsNotNone(str(profile))
         self.assertIsNotNone(repr(profile))
 
@@ -390,7 +389,7 @@ class ProfilingRecordModelTests(TestCase):
 
 
 @skipIfCustomUser
-class ProfilingMiddlewareTests(TestCase):
+class ProfilingMiddlewareDefaultUserTests(TestCase):
 
     def setUp(self):
         self.factory = RequestFactory()
@@ -509,18 +508,18 @@ class ProfilingMiddlewareTests(TestCase):
 
 
 @skipIfDefaultUser
-class ProfilingMiddlewareTests(TestCase):
+class ProfilingMiddlewareCustomUserTests(TestCase):
 
     def setUp(self):
         self.factory = RequestFactory()
         self.anon = AnonymousUser()
         self.bob = CustomUser.objects.create_user(
-                mobile_number="+886-999888777",
-                password="pass11"
+            mobile_number="+886-999888777",
+            password="pass11"
         )
         self.god = CustomUser.objects.create_superuser(
-                mobile_number="+886-999888000",
-                password="pass11"
+            mobile_number="+886-999888000",
+            password="pass11"
         )
         self.test_group = Group(name="test")
         self.test_group.save()

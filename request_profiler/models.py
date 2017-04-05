@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# models definitions for request_profiler
 import logging
 import re
 
@@ -139,15 +138,12 @@ class ProfilingRecord(models.Model):
     response_status_code = models.IntegerField()
     response_content_length = models.IntegerField()
 
-    def __unicode__(self):
-        return u"Request for '%s' took %ss" % (self.request_uri, self.duration)
-
     def __str__(self):
-        return unicode(self).decode('utf-8')
+        return "Request for '%s' took %ss" % (self.request_uri, self.duration)
 
     def __repr__(self):
         return (
-            u"<ProfilingRecord id=%s, view_func='%s', duration='%s'>" % (
+            "<ProfilingRecord id=%s, view_func='%s', duration='%s'>" % (
                 self.id,
                 self.view_func_name,
                 self.duration
