@@ -4,9 +4,6 @@
 .. image:: https://travis-ci.org/yunojuno/django-request-profiler.svg
     :target: https://travis-ci.org/yunojuno/django-request-profiler
 
-.. image:: https://codecov.io/gh/yunojuno/django-request-profiler/branch/master/graph/badge.svg
-    :target: https://codecov.io/gh/yunojuno/django-request-profiler
-
 Django Request Profiler
 =======================
 
