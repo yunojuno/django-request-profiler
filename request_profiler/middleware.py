@@ -60,7 +60,7 @@ class ProfilingMiddleware(MiddlewareMixin):
 
         """
         assert getattr(request, 'profiler', None) is not None, (
-            u"Request has no profiler attached."
+            "Request has no profiler attached."
         )
 
         # call the global exclude first, as there's no point continuing if this
@@ -74,7 +74,7 @@ class ProfilingMiddleware(MiddlewareMixin):
 
         # clean up after outselves
         if len(rules) == 0:
-            logger.debug(u"Deleting %r as request matches no live rules.", request.profiler)  # noqa
+            logger.debug("Deleting %r as request matches no live rules.", request.profiler)  # noqa
             del request.profiler
             return response
 

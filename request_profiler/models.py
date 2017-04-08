@@ -54,21 +54,21 @@ class RuleSet(models.Model):
         blank=True,
         default="",
         max_length=100,
-        help_text=u"Regex used to filter by request URI.",
-        verbose_name=u"Request path regex"
+        help_text="Regex used to filter by request URI.",
+        verbose_name="Request path regex"
     )
     user_filter_type = models.IntegerField(
         default=0,
         choices=USER_FILTER_CHOICES,
-        help_text=u"Filter requests by type of user.",
-        verbose_name=u"User type filter"
+        help_text="Filter requests by type of user.",
+        verbose_name="User type filter"
     )
     user_group_filter = models.CharField(
         blank=True,
         default="",
         max_length=100,
-        help_text=u"Group used to filter users.",
-        verbose_name=u"User group filter"
+        help_text="Group used to filter users.",
+        verbose_name="User group filter"
     )
     # use the custom model manager
     objects = RuleSetManager()
@@ -80,9 +80,9 @@ class RuleSet(models.Model):
     def clean(self):
         """Ensure that user_filter_group is only set if user_filter_type is appropriate."""
         if self.has_group_filter and self.user_filter_type != RuleSet.USER_FILTER_GROUP:
-            raise ValidationError(u"User filter type must be 'group' if you specify a group.")
+            raise ValidationError("User filter type must be 'group' if you specify a group.")
         if self.user_filter_type == RuleSet.USER_FILTER_GROUP and not self.has_group_filter:
-            raise ValidationError(u"You must specify a group if the filter type is 'group'.")
+            raise ValidationError("You must specify a group if the filter type is 'group'.")
 
     def match_uri(self, request_uri):
         """Return True if there is a uri_regex and it matches.
@@ -133,7 +133,7 @@ class ProfilingRecord(models.Model):
     request_uri = models.URLField(verbose_name="Request path")
     remote_addr = models.CharField(max_length=100)
     http_user_agent = models.CharField(max_length=400)
-    http_referer = models.CharField(max_length=400, default=u"")
+    http_referer = models.CharField(max_length=400, default="")
     view_func_name = models.CharField(max_length=100, verbose_name="View function")  # noqa
     response_status_code = models.IntegerField()
     response_content_length = models.IntegerField()
@@ -160,7 +160,7 @@ class ProfilingRecord(models.Model):
     @property
     def elapsed(self):
         """Calculated time elapsed so far."""
-        assert self.start_ts is not None, u"You must 'start' before you can get elapsed time."
+        assert self.start_ts is not None, "You must 'start' before you can get elapsed time."
         return (timezone.now() - self.start_ts).total_seconds()
 
     def set_request(self, request):
@@ -168,10 +168,10 @@ class ProfilingRecord(models.Model):
         self.request = request
         self.http_method = request.method
         self.request_uri = request.path
-        self.http_user_agent = request.META.get('HTTP_USER_AGENT', u'')[:400]
+        self.http_user_agent = request.META.get('HTTP_USER_AGENT', '')[:400]
         # we care about the domain more than the URL itself, so truncating
         # doesn't lose much useful information
-        self.http_referer = request.META.get('HTTP_REFERER', u'')[:400]
+        self.http_referer = request.META.get('HTTP_REFERER', '')[:400]
         # X-Forwarded-For is used by convention when passing through
         # load balancers etc., as the REMOTE_ADDR is rewritten in transit
         self.remote_addr = (
@@ -196,7 +196,7 @@ class ProfilingRecord(models.Model):
 
     def stop(self):
         """Set end_ts and duration from current datetime."""
-        assert self.start_ts is not None, u"You must 'start' before you can 'stop'"  # noqa
+        assert self.start_ts is not None, "You must 'start' before you can 'stop'"  # noqa
         self.end_ts = timezone.now()
         self.duration = (self.end_ts - self.start_ts).total_seconds()
         if hasattr(self, 'response'):
@@ -214,7 +214,7 @@ class ProfilingRecord(models.Model):
     def capture(self):
         """Call stop() and save() on the profile if is_cancelled is False."""
         if getattr(self, 'is_cancelled', False) is True:
-            logger.debug(u"%r has been cancelled.", self)
+            logger.debug("%r has been cancelled.", self)
             return self
         else:
             return self.stop().save()

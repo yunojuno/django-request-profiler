@@ -4,7 +4,7 @@ from django.http import HttpResponse, Http404
 
 
 def test_response(request):
-    return HttpResponse(u'this is a test')
+    return HttpResponse('this is a test')
 
 
 def test_view(request):
