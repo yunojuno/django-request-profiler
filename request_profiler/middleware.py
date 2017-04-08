@@ -2,13 +2,9 @@
 import logging
 
 from django.contrib.auth.models import AnonymousUser
-try:
-    from django.utils.deprecation import MiddlewareMixin
-except ImportError:
-    # Fallback for Django < 1.10
-    MiddlewareMixin = object
 
 from . import settings
+from .compat import MiddlewareMixin
 from .models import RuleSet, ProfilingRecord
 from .signals import request_profile_complete
 
@@ -91,6 +87,5 @@ class ProfilingMiddleware(MiddlewareMixin):
         # if any signal receivers have called cancel() on the profiler, then
         # this method will _not_ save it.
         profiler.capture()
-        profiler.set_response(response)
 
         return response

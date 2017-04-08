@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-from django.core.urlresolvers import reverse
 from django.test import TestCase
 
 from request_profiler import settings
+from request_profiler.compat import reverse
 from request_profiler.models import RuleSet, ProfilingRecord
 
 

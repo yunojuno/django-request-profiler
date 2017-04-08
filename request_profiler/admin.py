@@ -14,8 +14,6 @@ class RuleSetAdmin(admin.ModelAdmin):
         'user_group_filter',
     )
 
-admin.site.register(RuleSet, RuleSetAdmin)
-
 
 class ProfilingRecordAdmin(admin.ModelAdmin):
 
@@ -31,4 +29,6 @@ class ProfilingRecordAdmin(admin.ModelAdmin):
         'duration',
     )
 
+
+admin.site.register(RuleSet, RuleSetAdmin)
 admin.site.register(ProfilingRecord, ProfilingRecordAdmin)

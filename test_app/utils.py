@@ -1,4 +1,3 @@
-import warnings
 from unittest import skipIf
 
 from django.conf import settings
