@@ -42,7 +42,11 @@ class ProfilingMiddleware(MiddlewareMixin):
             settings.STORE_ANONYMOUS_SESSIONS is True
         ):
             request.session.save()
-        request.profiler.view_func_name = view_func.__name__
+
+        if hasattr(view_func, '__name__'):
+            request.profiler.view_func_name = view_func.__name__
+        else:
+            request.profiler.view_func_name = view_func.__class__.__name__
 
     def process_response(self, request, response):
         """Add response information and save the profiler record.
