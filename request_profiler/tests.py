@@ -18,8 +18,14 @@ from test_app.utils import skipIfDefaultUser
 
 
 def dummy_view_func(request, **kwargs):
-    "Fake function to pass into the process_view method."
+    """Fake function to pass into the process_view method."""
     pass
+
+
+class DummyView(object):
+    """Fake callable object to pass into the process_view method."""
+    def __call__(self, request, **kwargs):
+        pass
 
 
 class MockSession():
@@ -440,6 +446,12 @@ class ProfilingMiddlewareDefaultUserTests(TestCase):
         ProfilingMiddleware().process_view(request, dummy_view_func, [], {})
         self.assertEqual(request.profiler.view_func_name, "dummy_view_func")
 
+    def test_process_view__as_callable_object(self):
+        request = self.factory.get('/')
+        request.profiler = ProfilingRecord()
+        ProfilingMiddleware().process_view(request, DummyView(), [], {})
+        self.assertEqual(request.profiler.view_func_name, "DummyView")
+
     def test_process_response(self):
 
         request = self.factory.get('/')
@@ -564,6 +576,12 @@ class ProfilingMiddlewareCustomUserTests(TestCase):
         request.profiler = ProfilingRecord()
         ProfilingMiddleware().process_view(request, dummy_view_func, [], {})
         self.assertEqual(request.profiler.view_func_name, "dummy_view_func")
+
+    def test_process_view__as_callable_object(self):
+        request = self.factory.get('/')
+        request.profiler = ProfilingRecord()
+        ProfilingMiddleware().process_view(request, DummyView(), [], {})
+        self.assertEqual(request.profiler.view_func_name, "DummyView")
 
     def test_process_response(self):
 
