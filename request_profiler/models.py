@@ -8,6 +8,7 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
+from django.utils.encoding import python_2_unicode_compatible
 
 from . import settings
 
@@ -32,6 +33,7 @@ class RuleSetManager(models.Manager):
         return rulesets
 
 
+@python_2_unicode_compatible
 class RuleSet(models.Model):
     """Set of rules to match a URI and/or User."""
 
@@ -72,6 +74,9 @@ class RuleSet(models.Model):
     )
     # use the custom model manager
     objects = RuleSetManager()
+
+    def __str__(self):
+        return "Profiling rule #{}".format(self.pk)
 
     @property
     def has_group_filter(self):
@@ -121,34 +126,52 @@ class RuleSet(models.Model):
         return False
 
 
+@python_2_unicode_compatible
 class ProfilingRecord(models.Model):
 
     """Record of a request and its response."""
-    user = models.ForeignKey(django_settings.AUTH_USER_MODEL, null=True, blank=True)
-    session_key = models.CharField(blank=True, max_length=40)
-    start_ts = models.DateTimeField(verbose_name="Request started at")
-    end_ts = models.DateTimeField(verbose_name="Request ended at")
-    duration = models.FloatField(verbose_name="Request duration (sec)")
-    http_method = models.CharField(max_length=10)
-    request_uri = models.URLField(verbose_name="Request path")
-    remote_addr = models.CharField(max_length=100)
-    http_user_agent = models.CharField(max_length=400)
-    http_referer = models.CharField(max_length=400, default="")
-    view_func_name = models.CharField(max_length=100, verbose_name="View function")  # noqa
+    user = models.ForeignKey(
+        django_settings.AUTH_USER_MODEL,
+        null=True, blank=True
+    )
+    session_key = models.CharField(
+        blank=True,
+        max_length=40
+    )
+    start_ts = models.DateTimeField(
+        verbose_name="Request started at"
+    )
+    end_ts = models.DateTimeField(
+        verbose_name="Request ended at"
+    )
+    duration = models.FloatField(
+        verbose_name="Request duration (sec)"
+    )
+    http_method = models.CharField(
+        max_length=10
+    )
+    request_uri = models.URLField(
+        verbose_name="Request path"
+    )
+    remote_addr = models.CharField(
+        max_length=100
+    )
+    http_user_agent = models.CharField(
+        max_length=400
+    )
+    http_referer = models.CharField(
+        max_length=400,
+        default=""
+    )
+    view_func_name = models.CharField(
+        max_length=100,
+        verbose_name="View function"
+    )
     response_status_code = models.IntegerField()
     response_content_length = models.IntegerField()
 
     def __str__(self):
-        return "Request for '%s' took %ss" % (self.request_uri, self.duration)
-
-    def __repr__(self):
-        return (
-            "<ProfilingRecord id=%s, view_func='%s', duration='%s'>" % (
-                self.id,
-                self.view_func_name,
-                self.duration
-            )
-        )
+        return "Profiling record #{}".format(self.pk)
 
     def start(self):
         """Set start_ts from current datetime."""
