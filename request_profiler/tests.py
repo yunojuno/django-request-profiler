@@ -1,10 +1,17 @@
 # -*- coding: utf-8 -*-
 # tests for the request_profiler app
+from __future__ import unicode_literals
+
 import datetime
 
+from django.apps import apps
 from django.contrib.auth.models import User, AnonymousUser, Group
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.db import connection
+from django.db.migrations.autodetector import MigrationAutodetector
+from django.db.migrations.executor import MigrationExecutor
+from django.db.migrations.state import ProjectState
 from django.test import TestCase, RequestFactory
 from django.contrib.auth.tests.utils import skipIfCustomUser
 
@@ -648,3 +655,19 @@ class ProfilingMiddlewareCustomUserTests(TestCase):
         middleware.process_response(request, MockResponse(200))
         self.assertFalse(hasattr(request, 'profiler'))
         settings.GLOBAL_EXCLUDE_FUNC = lambda x: True
+
+
+class MigrationsTests(TestCase):
+
+    def test_for_missing_migrations(self):
+        """Checks if there're models changes which aren't reflected in migrations."""
+        migrations_loader = MigrationExecutor(connection).loader
+        migrations_detector = MigrationAutodetector(
+            from_state=migrations_loader.project_state(),
+            to_state=ProjectState.from_apps(apps)
+        )
+        if migrations_detector.changes(graph=migrations_loader.graph):
+            self.fail(
+                'Your models have changes that are not yet reflected '
+                'in a migration. You should add them now.'
+            )
