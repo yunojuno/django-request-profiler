@@ -8,7 +8,7 @@ chdir(path.normpath(path.join(path.abspath(__file__), pardir)))
 
 setup(
     name="django-request-profiler",
-    version="0.12.1",
+    version="0.12.2",
     packages=find_packages(),
     install_requires=['Django>=1.8'],
     include_package_data=True,
