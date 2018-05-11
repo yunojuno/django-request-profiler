@@ -52,7 +52,7 @@ it first sees the request, and stops the timer when it is finished with the
 response. It should be installed as the first middleware in
 ``MIDDLEWARE_CLASSES`` in order to record the maximum duration.
 
-It hooks into the ``process_request`` method to start the timer, the
+It hooks into the  ``process_request`` method to start the timer, the
 ``process_view`` method to record the view function name, and the
 ``process_response`` method to stop the timer, record all the request
 information and store the instance.
@@ -253,14 +253,14 @@ Django에 대한 매우 간단한 요청 프로파일 러입니다.
 프로파일 러 자체는 Django 미들웨어로 실행되며 타이머가 시작됩니다.
 먼저 요청을보고 타이머가 끝나면 타이머를 중지합니다.
 응답. 첫 번째 미들웨어로 설치해야합니다.
-최대 지속 시간을 기록하기 위해``MIDDLEWARE_CLASSES``를 사용하십시오.
+최대 지속 시간을 기록하기 위해 ``MIDDLEWARE_CLASSES`` 를 사용하십시오.
 
-타이머를 시작하기 위해``process_request`` 메소드에 후킹합니다.
-뷰 함수 이름을 기록하는``process_view`` 메소드와
+타이머를 시작하기 위해 ``process_request`` 메소드에 후킹합니다.
+뷰 함수 이름을 기록하는 ``process_view`` 메소드와
 ``process_response`` 메소드는 타이머를 멈추고, 모든 요청을 기록합니다.
 정보를 저장하고 인스턴스를 저장하십시오.
 
-프로파일 러는 "RuleSet"인스턴스를 추가하여 제어됩니다.
+프로파일 러는 "RuleSet" 인스턴스를 추가하여 제어됩니다.
 요청을 프로파일 링하는 필터 많은 부분이 겹칠 수 있으며,
 RuleSets. 그러나 일치하는 경우 요청이 프로파일 링됩니다. RuleSet 모델
 두 가지 핵심 매칭 메소드를 정의합니다.
@@ -280,15 +280,15 @@ RuleSets. 그러나 일치하는 경우 요청이 프로파일 링됩니다. Rul
 
 이 필터는 꽤 깔끔하지 않고 사용 사례가 많이 있습니다.
 프로파일 링에 대한보다 정교한 제어가 필요합니다. 두 가지 방법이 있습니다.
-이. 첫 번째 설정은``REQUEST_PROFILER_GLOBAL_EXCLUDE_FUNC``입니다.
+이. 첫 번째 설정은 ``REQUEST_PROFILER_GLOBAL_EXCLUDE_FUNC`` 입니다.
 단일 인수로 요청을 받고 True를 반환해야하는 함수 또는
 그릇된. False를 반환하면 규칙에 관계없이 프로필이 취소됩니다.
 이를위한 기본 사용 사례는 사용자가 아닌 일반적인 요청을 제외하는 것입니다
 에 관심이있다. 검색 엔진 봇 또는 관리자 사용자 등.
 이 기능의 기본값은 관리자 사용자 요청이 프로파일되지 않도록하는 것입니다.
 
-두 번째 컨트롤은``ProfilingRecord``에있는``cancel ()``메소드를 통해 이루어지며,
-이것은``request_profile_complete`` 시그널을 통해 접근 가능합니다. 후크로
+두 번째 컨트롤은 ``ProfilingRecord`` 에있는 ``cancel ()`` 메소드를 통해 이루어지며,
+이것은 ``request_profile_complete`` 시그널을 통해 접근 가능합니다. 후크로
 이 신호에 추가 처리를 추가하고 선택적으로 취소 할 수 있습니다.
 프로파일 러. 일반적인 사용 사례는 다음과 같은 요청을 기록하는 것입니다.
 설정된 요청 지속 시간 임계 값을 초과했습니다. 높은 볼륨 환경에서
