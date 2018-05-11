@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# admin models for request_profiler app
 from django.contrib import admin
 
 from .models import RuleSet, ProfilingRecord

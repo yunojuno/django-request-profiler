@@ -1,11 +1,6 @@
-import django
 from django.shortcuts import render
 from django.http import HttpResponse, Http404
-
-if django.VERSION < (1, 10):
-    from django.views.generic import View
-else:
-    from django.views import View
+from django.views import View
 
 
 def test_response(request):

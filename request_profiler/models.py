@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 import logging
 import re
 
@@ -117,7 +114,7 @@ class RuleSet(models.Model):
             return True
 
         if self.user_filter_type == RuleSet.USER_FILTER_AUTH:
-            return user.is_authenticated()
+            return user.is_authenticated
 
         if self.user_filter_type == RuleSet.USER_FILTER_GROUP:
             group = self.user_group_filter.strip()
@@ -134,6 +131,7 @@ class ProfilingRecord(models.Model):
     """Record of a request and its response."""
     user = models.ForeignKey(
         django_settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
         null=True, blank=True
     )
     session_key = models.CharField(
@@ -208,7 +206,7 @@ class ProfilingRecord(models.Model):
         if hasattr(request, 'session'):
             self.session_key = request.session.session_key or ""
         # NB you can't store AnonymouseUsers, so don't bother trying
-        if hasattr(request, 'user') and request.user.is_authenticated():
+        if hasattr(request, 'user') and request.user.is_authenticated:
             self.user = request.user
         return self
 

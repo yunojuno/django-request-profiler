@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-# tests for the request_profiler app
-from __future__ import unicode_literals
-
 import datetime
 
 from django.apps import apps
@@ -13,7 +9,6 @@ from django.db.migrations.autodetector import MigrationAutodetector
 from django.db.migrations.executor import MigrationExecutor
 from django.db.migrations.state import ProjectState
 from django.test import TestCase, RequestFactory
-from django.contrib.auth.tests.utils import skipIfCustomUser
 
 from . import settings
 from .middleware import ProfilingMiddleware
@@ -21,7 +16,7 @@ from .models import RuleSet, RuleSetManager, ProfilingRecord
 from .signals import request_profile_complete
 
 from test_app.models import CustomUser
-from test_app.utils import skipIfDefaultUser
+from test_app.utils import skipIfDefaultUser, skipIfCustomUser
 
 
 def dummy_view_func(request, **kwargs):
@@ -165,7 +160,7 @@ class RuleSetModelTests(TestCase):
         bob = User.objects.create_user("Bob")
         self.assertFalse(bob.groups.exists())
         self.assertFalse(bob.is_staff)
-        self.assertTrue(bob.is_authenticated())
+        self.assertTrue(bob.is_authenticated)
         self.assertTrue(ruleset.match_user(bob))
 
         # now create the filter, and check bob no longer matches
@@ -210,7 +205,7 @@ class RuleSetModelTests(TestCase):
         )
         self.assertFalse(bob.groups.exists())
         self.assertFalse(bob.is_staff)
-        self.assertTrue(bob.is_authenticated())
+        self.assertTrue(bob.is_authenticated)
         self.assertTrue(ruleset.match_user(bob))
 
         # now create the filter, and check bob no longer matches
