@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # signal definitions for request_profiler
 from django.dispatch import Signal
 

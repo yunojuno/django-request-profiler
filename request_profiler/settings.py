@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # models definitions for request_profiler
 from django.conf import settings
 

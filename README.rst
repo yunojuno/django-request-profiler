@@ -7,6 +7,8 @@
 Django Request Profiler
 =======================
 
+**This package now requires Python3 and Django1.11 and above. For previous versions please refer to the Python2 branch.**
+
 A very simple request profiler for Django.
 
 Introduction

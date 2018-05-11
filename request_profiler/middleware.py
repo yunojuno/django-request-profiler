@@ -1,10 +1,9 @@
-# -*- coding: utf-8 -*-
 import logging
 
 from django.contrib.auth.models import AnonymousUser
+from django.utils.deprecation import MiddlewareMixin
 
 from . import settings
-from .compat import MiddlewareMixin
 from .models import RuleSet, ProfilingRecord
 from .signals import request_profile_complete
 

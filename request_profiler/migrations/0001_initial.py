@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
                 ('view_func_name', models.CharField(max_length=100, verbose_name='View function')),
                 ('response_status_code', models.IntegerField()),
                 ('response_content_length', models.IntegerField()),
-                ('user', models.ForeignKey(blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+                ('user', models.ForeignKey(blank=True, to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)),
             ],
             options={
             },
