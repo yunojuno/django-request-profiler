@@ -52,7 +52,7 @@ it first sees the request, and stops the timer when it is finished with the
 response. It should be installed as the first middleware in
 ``MIDDLEWARE_CLASSES`` in order to record the maximum duration.
 
-It hooks into the ``process_request`` method to start the timer, the
+It hooks into the  ``process_request`` method to start the timer, the
 ``process_view`` method to record the view function name, and the
 ``process_response`` method to stop the timer, record all the request
 information and store the instance.
@@ -197,3 +197,4 @@ Licence
 -------
 
 MIT (see LICENCE)
+
