@@ -153,7 +153,7 @@ class ProfilingRecord(models.Model):
     request_uri = models.URLField(
         verbose_name="Request path"
     )
-   query_string = models.TextField(
+    query_string = models.TextField(
         null=True,
         verbose_name="Query parameters string"
     ) 
