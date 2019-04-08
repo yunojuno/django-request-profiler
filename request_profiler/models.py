@@ -154,8 +154,9 @@ class ProfilingRecord(models.Model):
         verbose_name="Request path"
     )
     query_string = models.TextField(
-        null=True,
-        verbose_name="Query parameters string"
+        null=False,
+        blank=True,
+        verbose_name="Query string"
     ) 
     remote_addr = models.CharField(
         max_length=100
