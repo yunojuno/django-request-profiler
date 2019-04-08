@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='profilingrecord',
             name='query_string',
-            field=models.TextField(null=True, verbose_name='Query parameters string'),
+            field=models.TextField(null=False, blank=True, verbose_name='Query string'),
         ),
     ]
