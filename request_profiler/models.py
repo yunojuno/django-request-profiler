@@ -153,6 +153,11 @@ class ProfilingRecord(models.Model):
     request_uri = models.URLField(
         verbose_name="Request path"
     )
+    query_string = models.TextField(
+        null=False,
+        blank=True,
+        verbose_name="Query string"
+    ) 
     remote_addr = models.CharField(
         max_length=100
     )
@@ -191,6 +196,7 @@ class ProfilingRecord(models.Model):
         self.request = request
         self.http_method = request.method
         self.request_uri = request.path
+        self.query_string = request.META.get('QUERY_STRING','')
         self.http_user_agent = request.META.get('HTTP_USER_AGENT', '')[:400]
         # we care about the domain more than the URL itself, so truncating
         # doesn't lose much useful information
