@@ -18,12 +18,28 @@ class ProfilingRecordAdmin(admin.ModelAdmin):
     list_display = (
         'start_ts',
         'user',
-        'session_key',
-        'remote_addr',
         'http_method',
         'request_uri',
         'view_func_name',
+        'query_count',
         'response_status_code',
+        'duration',
+    )
+    readonly_fields = (
+        'user',
+        'session_key',
+        'start_ts',
+        'end_ts',
+        'remote_addr',
+        'request_uri',
+        'query_string',
+        'view_func_name',
+        'http_method',
+        'http_user_agent',
+        'http_referer',
+        'response_status_code',
+        'response_content_length',
+        'query_count',
         'duration',
     )
 

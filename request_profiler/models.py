@@ -5,7 +5,7 @@ from django.conf import settings as django_settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, connection
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 
@@ -157,7 +157,7 @@ class ProfilingRecord(models.Model):
         null=False,
         blank=True,
         verbose_name="Query string"
-    ) 
+    )
     remote_addr = models.CharField(
         max_length=100
     )
@@ -174,6 +174,11 @@ class ProfilingRecord(models.Model):
     )
     response_status_code = models.IntegerField()
     response_content_length = models.IntegerField()
+    query_count = models.IntegerField(
+        help_text="Number of database queries logged during request.",
+        blank=True,
+        null=True
+    )
 
     def __str__(self):
         return "Profiling record #{}".format(self.pk)
@@ -228,6 +233,7 @@ class ProfilingRecord(models.Model):
         assert self.start_ts is not None, "You must 'start' before you can 'stop'"  # noqa
         self.end_ts = timezone.now()
         self.duration = (self.end_ts - self.start_ts).total_seconds()
+        self.query_count = len(connection.queries)
         if hasattr(self, 'response'):
             self.response['X-Profiler-Duration'] = self.duration
         return self
