@@ -5,4 +5,4 @@ from django.dispatch import Signal
 # saved. This signal can be used to cancel the profiling by calling the
 # instance.cancel() method, which sets an internal property telling the
 # instance not to save itself when capture() is called.
-request_profile_complete = Signal(providing_args=['request', 'response', 'instance'])
+request_profile_complete = Signal(providing_args=["request", "response", "instance"])

@@ -5,14 +5,16 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('request_profiler', '0003_profilingrecord_query_string'),
-    ]
+    dependencies = [("request_profiler", "0003_profilingrecord_query_string")]
 
     operations = [
         migrations.AddField(
-            model_name='profilingrecord',
-            name='query_count',
-            field=models.IntegerField(help_text='Number of database queries logged during request.', blank=True, null=True),
-        ),
+            model_name="profilingrecord",
+            name="query_count",
+            field=models.IntegerField(
+                help_text="Number of database queries logged during request.",
+                blank=True,
+                null=True,
+            ),
+        )
     ]
