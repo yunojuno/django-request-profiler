@@ -23,10 +23,13 @@ class ProfilingMiddleware(MiddlewareMixin):
     and to stop the profiler.
 
     """
+
     def match_rules(self, request, rules):
         """Return subset of a list of rules that match a request."""
-        user = getattr(request, 'user', AnonymousUser())
-        return [r for r in rules if r.match_uri(request.path) and r.match_user(user)]  # noqa
+        user = getattr(request, "user", AnonymousUser())
+        return [
+            r for r in rules if r.match_uri(request.path) and r.match_user(user)
+        ]  # noqa
 
     def process_request(self, request):
         """Start profiling."""
@@ -36,13 +39,13 @@ class ProfilingMiddleware(MiddlewareMixin):
         """Add view_func to the profiler info."""
         # force the creation of a valid session by saving it.
         if (
-            hasattr(request, 'session') and
-            request.session.session_key is None and
-            settings.STORE_ANONYMOUS_SESSIONS is True
+            hasattr(request, "session")
+            and request.session.session_key is None
+            and settings.STORE_ANONYMOUS_SESSIONS is True
         ):
             request.session.save()
 
-        if hasattr(view_func, '__name__'):
+        if hasattr(view_func, "__name__"):
             request.profiler.view_func_name = view_func.__name__
         else:
             request.profiler.view_func_name = view_func.__class__.__name__
@@ -58,9 +61,9 @@ class ProfilingMiddleware(MiddlewareMixin):
         and aborting the save if any listeners respond False.
 
         """
-        assert getattr(request, 'profiler', None) is not None, (
-            "Request has no profiler attached."
-        )
+        assert (
+            getattr(request, "profiler", None) is not None
+        ), "Request has no profiler attached."
 
         # call the global exclude first, as there's no point continuing if this
         # says no.
@@ -73,7 +76,9 @@ class ProfilingMiddleware(MiddlewareMixin):
 
         # clean up after outselves
         if len(rules) == 0:
-            logger.debug("Deleting %r as request matches no live rules.", request.profiler)  # noqa
+            logger.debug(
+                "Deleting %r as request matches no live rules.", request.profiler
+            )  # noqa
             del request.profiler
             return response
 
@@ -82,10 +87,7 @@ class ProfilingMiddleware(MiddlewareMixin):
 
         # send signal so that receivers can intercept profiler
         request_profile_complete.send(
-            sender=self.__class__,
-            request=request,
-            response=response,
-            instance=profiler
+            sender=self.__class__, request=request, response=response, instance=profiler
         )
         # if any signal receivers have called cancel() on the profiler, then
         # this method will _not_ save it.

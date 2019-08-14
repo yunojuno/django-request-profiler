@@ -4,11 +4,11 @@ from django.views import View
 
 
 def test_response(request):
-    return HttpResponse('this is a test')
+    return HttpResponse("this is a test")
 
 
 def test_view(request):
-    return render(request, 'test.html')
+    return render(request, "test.html")
 
 
 def test_404(request):
@@ -17,11 +17,11 @@ def test_404(request):
 
 class TestView(View):
     def get(self, request):
-        return HttpResponse('this is a response of CBV')
+        return HttpResponse("this is a response of CBV")
 
 
 class CallableTestView(object):
-    def __init__(self, response_text='this is a test'):
+    def __init__(self, response_text="this is a test"):
         self._response_text = response_text
 
     def __call__(self, request):

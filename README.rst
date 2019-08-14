@@ -7,7 +7,7 @@
 Django Request Profiler
 =======================
 
-**This package now requires Python3 and Django1.11 and above. For previous versions please refer to the Python2 branch.**
+**This package now requires Python3 and Django 1.11 and above. For previous versions please refer to the Python2 branch.**
 
 A very simple request profiler for Django.
 
@@ -39,6 +39,7 @@ Requirements
 - Response status code, content length
 - View function
 - Django user and session keys (if appropriate)
+- Database query count (if DEBUG=True)
 
 It doesn't need to record all the inner timing information - the goal is to have
 a system that can be used to monitor site response times, and to identify

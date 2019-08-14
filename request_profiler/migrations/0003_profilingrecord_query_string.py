@@ -7,14 +7,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('request_profiler', '0002_profilingrecord_http_referer'),
-    ]
+    dependencies = [("request_profiler", "0002_profilingrecord_http_referer")]
 
     operations = [
         migrations.AddField(
-            model_name='profilingrecord',
-            name='query_string',
-            field=models.TextField(null=False, blank=True, verbose_name='Query string'),
-        ),
+            model_name="profilingrecord",
+            name="query_string",
+            field=models.TextField(null=False, blank=True, verbose_name="Query string"),
+        )
     ]

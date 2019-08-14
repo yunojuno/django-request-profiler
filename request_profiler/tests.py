@@ -26,16 +26,17 @@ def dummy_view_func(request, **kwargs):
 
 class DummyView(object):
     """Fake callable object to pass into the process_view method."""
+
     def __call__(self, request, **kwargs):
         pass
 
 
-class MockSession():
+class MockSession:
     def __init__(self, session_key):
         self.session_key = session_key
 
 
-class MockResponse():
+class MockResponse:
     def __init__(self, status_code):
         self.status_code = status_code
         self.content = "Hello, World!"
@@ -95,10 +96,10 @@ class RuleSetModelTests(TestCase):
     def test_default_properties(self):
         ruleset = RuleSet()
         props = [
-            ('enabled', True),
-            ('uri_regex', ""),
-            ('user_filter_type', 0),
-            ('user_group_filter', ""),
+            ("enabled", True),
+            ("uri_regex", ""),
+            ("user_filter_type", 0),
+            ("user_group_filter", ""),
         ]
         for p in props:
             self.assertEqual(getattr(ruleset, p[0]), p[1])
@@ -106,11 +107,7 @@ class RuleSetModelTests(TestCase):
 
     def test_has_group_filter(self):
         ruleset = RuleSet()
-        filters = (
-            ("", False),
-            (" ", False),
-            ("test", True),
-        )
+        filters = (("", False), (" ", False), ("test", True))
         for f in filters:
             ruleset.user_group_filter = f[0]
             self.assertEqual(ruleset.has_group_filter, f[1])
@@ -134,7 +131,7 @@ class RuleSetModelTests(TestCase):
             (" ", True),
             ("^/test", True),
             (".", True),
-            ("/x", False)
+            ("/x", False),
         )
 
         for r in regexes:
@@ -200,8 +197,7 @@ class RuleSetModelTests(TestCase):
 
         # create a real user, but still no group filter
         bob = CustomUser.objects.create_user(
-            mobile_number="+886-999888777",
-            password="pass11"
+            mobile_number="+886-999888777", password="pass11"
         )
         self.assertFalse(bob.groups.exists())
         self.assertFalse(bob.is_staff)
@@ -238,18 +234,18 @@ class ProfilingRecordModelTests(TestCase):
     def test_default_properties(self):
         profile = ProfilingRecord()
         props = [
-            ('user', None),
-            ('session_key', ""),
-            ('start_ts', None),
-            ('end_ts', None),
-            ('duration', None),
-            ('http_method', ""),
-            ('request_uri', ""),
-            ('remote_addr', ""),
-            ('http_user_agent', ""),
-            ('http_referer', ""),
-            ('view_func_name', ""),
-            ('response_status_code', None),
+            ("user", None),
+            ("session_key", ""),
+            ("start_ts", None),
+            ("end_ts", None),
+            ("duration", None),
+            ("http_method", ""),
+            ("request_uri", ""),
+            ("remote_addr", ""),
+            ("http_user_agent", ""),
+            ("http_referer", ""),
+            ("view_func_name", ""),
+            ("response_status_code", None),
         ]
         for p in props:
             self.assertEqual(getattr(profile, p[0]), p[1])
@@ -300,7 +296,7 @@ class ProfilingRecordModelTests(TestCase):
         self.assertIsNotNone(profile.end_ts)
         self.assertIsNotNone(profile.duration)
         self.assertIsNotNone(profile.id)
-        self.assertEqual(response['X-Profiler-Duration'], profile.duration)
+        self.assertEqual(response["X-Profiler-Duration"], profile.duration)
 
         profile = ProfilingRecord().cancel().capture()
         self.assertIsNone(profile.start_ts)
@@ -322,8 +318,8 @@ class ProfilingRecordModelTests(TestCase):
 
         factory = RequestFactory()
         request = factory.get("/test")
-        request.META['HTTP_USER_AGENT'] = "test-browser"
-        request.META['HTTP_REFERER'] = "google.com"
+        request.META["HTTP_USER_AGENT"] = "test-browser"
+        request.META["HTTP_REFERER"] = "google.com"
         profile = ProfilingRecord()
 
         profile.set_request(request)
@@ -356,8 +352,8 @@ class ProfilingRecordModelTests(TestCase):
 
         factory = RequestFactory()
         request = factory.get("/test")
-        request.META['HTTP_USER_AGENT'] = "test-browser"
-        request.META['HTTP_REFERER'] = "google.com"
+        request.META["HTTP_USER_AGENT"] = "test-browser"
+        request.META["HTTP_REFERER"] = "google.com"
         profile = ProfilingRecord()
 
         profile.set_request(request)
@@ -377,8 +373,7 @@ class ProfilingRecordModelTests(TestCase):
 
         # test that we can set the custom user
         request.user = CustomUser.objects.create_user(
-            mobile_number="+886-999888777",
-            password="pass11"
+            mobile_number="+886-999888777", password="pass11"
         )
         profile = ProfilingRecord().set_request(request)
         self.assertEqual(profile.user, request.user)
@@ -398,7 +393,6 @@ class ProfilingRecordModelTests(TestCase):
 
 @skipIfCustomUser
 class ProfilingMiddlewareDefaultUserTests(TestCase):
-
     def setUp(self):
         self.factory = RequestFactory()
         self.anon = AnonymousUser()
@@ -414,7 +408,7 @@ class ProfilingMiddlewareDefaultUserTests(TestCase):
         r1 = RuleSet()
         self.assertTrue(r1.match_user(self.anon))
 
-        request = self.factory.get('/')
+        request = self.factory.get("/")
         request.user = self.anon
         self.assertTrue(r1.match_uri, request.path)
 
@@ -436,27 +430,27 @@ class ProfilingMiddlewareDefaultUserTests(TestCase):
         self.assertEqual(middleware.match_rules(request, [r1]), [r1])
 
     def test_process_request(self):
-        request = self.factory.get('/')
+        request = self.factory.get("/")
         ProfilingMiddleware().process_request(request)
         # this implicitly checks that the profile is attached,
         # and that start() has been called.
         self.assertIsNotNone(request.profiler.elapsed)
 
     def test_process_view(self):
-        request = self.factory.get('/')
+        request = self.factory.get("/")
         request.profiler = ProfilingRecord()
         ProfilingMiddleware().process_view(request, dummy_view_func, [], {})
         self.assertEqual(request.profiler.view_func_name, "dummy_view_func")
 
     def test_process_view__as_callable_object(self):
-        request = self.factory.get('/')
+        request = self.factory.get("/")
         request.profiler = ProfilingRecord()
         ProfilingMiddleware().process_view(request, DummyView(), [], {})
         self.assertEqual(request.profiler.view_func_name, "DummyView")
 
     def test_process_response(self):
 
-        request = self.factory.get('/')
+        request = self.factory.get("/")
         middleware = ProfilingMiddleware()
         with self.assertRaises(AssertionError):
             middleware.process_response(request, None)
@@ -465,7 +459,7 @@ class ProfilingMiddlewareDefaultUserTests(TestCase):
         request.profiler = ProfilingRecord().start()
         response = middleware.process_response(request, MockResponse(200))
         self.assertEqual(response.status_code, 200)
-        self.assertFalse(hasattr(request, 'profiler'))
+        self.assertFalse(hasattr(request, "profiler"))
 
         # try matching a rule, and checking response values
         r1 = RuleSet()
@@ -474,11 +468,11 @@ class ProfilingMiddlewareDefaultUserTests(TestCase):
         response = middleware.process_response(request, MockResponse(200))
         self.assertIsNotNone(response)
         self.assertTrue(request.profiler.response_status_code, response.status_code)
-        self.assertTrue(response['X-Profiler-Duration'], request.profiler.duration)
+        self.assertTrue(response["X-Profiler-Duration"], request.profiler.duration)
 
     def test_process_response_signal_cancellation(self):
 
-        request = self.factory.get('/')
+        request = self.factory.get("/")
         request.profiler = ProfilingRecord().start()
         middleware = ProfilingMiddleware()
 
@@ -490,7 +484,7 @@ class ProfilingMiddlewareDefaultUserTests(TestCase):
 
         def on_request_profile_complete(sender, **kwargs):
             self.signal_received = True
-            kwargs.get('instance').cancel()
+            kwargs.get("instance").cancel()
 
         request_profile_complete.connect(on_request_profile_complete)
         middleware.process_response(request, MockResponse(200))
@@ -504,7 +498,7 @@ class ProfilingMiddlewareDefaultUserTests(TestCase):
 
         # set the func to ignore everything
         RuleSet().save()
-        request = self.factory.get('/')
+        request = self.factory.get("/")
         request.profiler = ProfilingRecord().start()
         middleware = ProfilingMiddleware()
         # process normally, record is saved.
@@ -517,23 +511,20 @@ class ProfilingMiddlewareDefaultUserTests(TestCase):
         request.profiler = ProfilingRecord().start()
         # process now, and profiler is cancelled
         middleware.process_response(request, MockResponse(200))
-        self.assertFalse(hasattr(request, 'profiler'))
+        self.assertFalse(hasattr(request, "profiler"))
         settings.GLOBAL_EXCLUDE_FUNC = lambda x: True
 
 
 @skipIfDefaultUser
 class ProfilingMiddlewareCustomUserTests(TestCase):
-
     def setUp(self):
         self.factory = RequestFactory()
         self.anon = AnonymousUser()
         self.bob = CustomUser.objects.create_user(
-            mobile_number="+886-999888777",
-            password="pass11"
+            mobile_number="+886-999888777", password="pass11"
         )
         self.god = CustomUser.objects.create_superuser(
-            mobile_number="+886-999888000",
-            password="pass11"
+            mobile_number="+886-999888000", password="pass11"
         )
         self.test_group = Group(name="test")
         self.test_group.save()
@@ -545,7 +536,7 @@ class ProfilingMiddlewareCustomUserTests(TestCase):
         r1 = RuleSet()
         self.assertTrue(r1.match_user(self.anon))
 
-        request = self.factory.get('/')
+        request = self.factory.get("/")
         request.user = self.anon
         self.assertTrue(r1.match_uri, request.path)
 
@@ -567,27 +558,27 @@ class ProfilingMiddlewareCustomUserTests(TestCase):
         self.assertEqual(middleware.match_rules(request, [r1]), [r1])
 
     def test_process_request(self):
-        request = self.factory.get('/')
+        request = self.factory.get("/")
         ProfilingMiddleware().process_request(request)
         # this implicitly checks that the profile is attached,
         # and that start() has been called.
         self.assertIsNotNone(request.profiler.elapsed)
 
     def test_process_view(self):
-        request = self.factory.get('/')
+        request = self.factory.get("/")
         request.profiler = ProfilingRecord()
         ProfilingMiddleware().process_view(request, dummy_view_func, [], {})
         self.assertEqual(request.profiler.view_func_name, "dummy_view_func")
 
     def test_process_view__as_callable_object(self):
-        request = self.factory.get('/')
+        request = self.factory.get("/")
         request.profiler = ProfilingRecord()
         ProfilingMiddleware().process_view(request, DummyView(), [], {})
         self.assertEqual(request.profiler.view_func_name, "DummyView")
 
     def test_process_response(self):
 
-        request = self.factory.get('/')
+        request = self.factory.get("/")
         middleware = ProfilingMiddleware()
         with self.assertRaises(AssertionError):
             middleware.process_response(request, None)
@@ -596,7 +587,7 @@ class ProfilingMiddlewareCustomUserTests(TestCase):
         request.profiler = ProfilingRecord().start()
         response = middleware.process_response(request, MockResponse(200))
         self.assertEqual(response.status_code, 200)
-        self.assertFalse(hasattr(request, 'profiler'))
+        self.assertFalse(hasattr(request, "profiler"))
 
         # try matching a rule, and checking response values
         r1 = RuleSet()
@@ -605,11 +596,11 @@ class ProfilingMiddlewareCustomUserTests(TestCase):
         response = middleware.process_response(request, MockResponse(200))
         self.assertIsNotNone(response)
         self.assertTrue(request.profiler.response_status_code, response.status_code)
-        self.assertTrue(response['X-Profiler-Duration'], request.profiler.duration)
+        self.assertTrue(response["X-Profiler-Duration"], request.profiler.duration)
 
     def test_process_response_signal_cancellation(self):
 
-        request = self.factory.get('/')
+        request = self.factory.get("/")
         request.profiler = ProfilingRecord().start()
         middleware = ProfilingMiddleware()
 
@@ -621,7 +612,7 @@ class ProfilingMiddlewareCustomUserTests(TestCase):
 
         def on_request_profile_complete(sender, **kwargs):
             self.signal_received = True
-            kwargs.get('instance').cancel()
+            kwargs.get("instance").cancel()
 
         request_profile_complete.connect(on_request_profile_complete)
         middleware.process_response(request, MockResponse(200))
@@ -635,7 +626,7 @@ class ProfilingMiddlewareCustomUserTests(TestCase):
 
         # set the func to ignore everything
         RuleSet().save()
-        request = self.factory.get('/')
+        request = self.factory.get("/")
         request.profiler = ProfilingRecord().start()
         middleware = ProfilingMiddleware()
         # process normally, record is saved.
@@ -648,21 +639,20 @@ class ProfilingMiddlewareCustomUserTests(TestCase):
         request.profiler = ProfilingRecord().start()
         # process now, and profiler is cancelled
         middleware.process_response(request, MockResponse(200))
-        self.assertFalse(hasattr(request, 'profiler'))
+        self.assertFalse(hasattr(request, "profiler"))
         settings.GLOBAL_EXCLUDE_FUNC = lambda x: True
 
 
 class MigrationsTests(TestCase):
-
     def test_for_missing_migrations(self):
         """Checks if there're models changes which aren't reflected in migrations."""
         migrations_loader = MigrationExecutor(connection).loader
         migrations_detector = MigrationAutodetector(
             from_state=migrations_loader.project_state(),
-            to_state=ProjectState.from_apps(apps)
+            to_state=ProjectState.from_apps(apps),
         )
         if migrations_detector.changes(graph=migrations_loader.graph):
             self.fail(
-                'Your models have changes that are not yet reflected '
-                'in a migration. You should add them now.'
+                "Your models have changes that are not yet reflected "
+                "in a migration. You should add them now."
             )
