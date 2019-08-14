@@ -5,7 +5,7 @@ from django.conf import settings as django_settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
-from django.db import models, connection
+from django.db import connection, models
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 

@@ -1,5 +1,6 @@
-from os import path, pardir, chdir
-from setuptools import setup, find_packages
+from os import chdir, pardir, path
+
+from setuptools import find_packages, setup
 
 README = open(path.join(path.dirname(__file__), "README.rst")).read()
 

@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from request_profiler import settings
-from request_profiler.models import RuleSet, ProfilingRecord
+from request_profiler.models import ProfilingRecord, RuleSet
 
 
 class ViewTests(TestCase):

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import RuleSet, ProfilingRecord
+from .models import ProfilingRecord, RuleSet
 
 
 class RuleSetAdmin(admin.ModelAdmin):

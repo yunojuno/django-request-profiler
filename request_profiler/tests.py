@@ -1,22 +1,21 @@
 import datetime
 
 from django.apps import apps
-from django.contrib.auth.models import User, AnonymousUser, Group
+from django.contrib.auth.models import AnonymousUser, Group, User
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import connection
 from django.db.migrations.autodetector import MigrationAutodetector
 from django.db.migrations.executor import MigrationExecutor
 from django.db.migrations.state import ProjectState
-from django.test import TestCase, RequestFactory
+from django.test import RequestFactory, TestCase
+from test_app.models import CustomUser
+from test_app.utils import skipIfCustomUser, skipIfDefaultUser
 
 from . import settings
 from .middleware import ProfilingMiddleware
-from .models import RuleSet, RuleSetManager, ProfilingRecord
+from .models import ProfilingRecord, RuleSet, RuleSetManager
 from .signals import request_profile_complete
-
-from test_app.models import CustomUser
-from test_app.utils import skipIfDefaultUser, skipIfCustomUser
 
 
 def dummy_view_func(request, **kwargs):

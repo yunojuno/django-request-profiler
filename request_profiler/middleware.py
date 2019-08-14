@@ -4,7 +4,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.utils.deprecation import MiddlewareMixin
 
 from . import settings
-from .models import RuleSet, ProfilingRecord
+from .models import ProfilingRecord, RuleSet
 from .signals import request_profile_complete
 
 logger = logging.getLogger(__name__)

@@ -1,0 +1,17 @@
+; This .pylintrc files is for the pre-commit check. It is  the same
+; as the main CI config with the exception of pylint_django, which
+; can prove hard to configure if you are using pipenv / virtualenv
+; and pre-commit is running outside of your virtualenv.
+
+[MASTER]
+init-hook="from pylint.config import find_pylintrc; import os, sys; sys.path.append(os.path.dirname(find_pylintrc()));"
+ignore=.git,.tox,.cache,.venv
+
+[MESSAGES CONTROL]
+disable=all
+enable=bare-except,broad-except,unused-import
+
+[REPORTS]
+output-format=text
+reports=no
+score=no
