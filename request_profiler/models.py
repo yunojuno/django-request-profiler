@@ -167,6 +167,10 @@ class ProfilingRecord(models.Model):
         self.start_ts = timezone.now()
         self.end_ts = None
         self.duration = None
+        self.query_count = 0
+        self._query_count = len(connection.queries)
+        self._force_debug_cursor = connection.force_debug_cursor
+        connection.force_debug_cursor = settings.FORCE_DEBUG_CURSOR
         return self
 
     @property
@@ -216,7 +220,8 @@ class ProfilingRecord(models.Model):
         ), "You must 'start' before you can 'stop'"  # noqa
         self.end_ts = timezone.now()
         self.duration = (self.end_ts - self.start_ts).total_seconds()
-        self.query_count = len(connection.queries)
+        self.query_count = len(connection.queries) - self._query_count
+        connection.force_debug_cursor = self._force_debug_cursor
         if hasattr(self, "response"):
             self.response["X-Profiler-Duration"] = self.duration
         return self

@@ -264,6 +264,22 @@ class ProfilingRecordModelTests(TestCase):
         self.assertIsNone(profile.end_ts)
         self.assertIsNone(profile.duration)
 
+    def test_start__force_debug__FALSE(self):
+        """Test the FORCE_DEBUG_CURSOR setting."""
+        settings.FORCE_DEBUG_CURSOR = False
+        profiler = ProfilingRecord().start()
+        User.objects.exists()
+        profiler.stop()
+        self.assertEqual(profiler.query_count, 0)
+
+    def test_start__force_debug__TRUE(self):
+        settings.FORCE_DEBUG_CURSOR = True
+        profiler = ProfilingRecord().start()
+        User.objects.exists()
+        profiler.stop()
+        self.assertEqual(profiler.query_count, 1)
+        self.assertFalse(connection.force_debug_cursor)
+
     def test_stop(self):
         profile = ProfilingRecord()
         self.assertRaises(AssertionError, profile.stop)
