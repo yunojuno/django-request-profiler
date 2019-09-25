@@ -7,7 +7,6 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import connection, models
 from django.utils import timezone
-from django.utils.encoding import python_2_unicode_compatible
 
 from . import settings
 
@@ -35,7 +34,6 @@ class RuleSetManager(models.Manager):
         return rulesets
 
 
-@python_2_unicode_compatible
 class RuleSet(models.Model):
     """Set of rules to match a URI and/or User."""
 
@@ -132,7 +130,6 @@ class RuleSet(models.Model):
         return False
 
 
-@python_2_unicode_compatible
 class ProfilingRecord(models.Model):
 
     """Record of a request and its response."""
