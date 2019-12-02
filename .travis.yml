@@ -1,8 +1,16 @@
-language:
-  python
+language: python
 python:
-  - "3.6"
+    - "3.7"
+
+before_install:
+    - curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python
+    - source $HOME/.poetry/env
+
 install:
-  pip install tox-travis
+    - poetry install -v
+    - pip install tox-travis
+
 script:
-  tox
+    - poetry run isort --check-only --recursive command_log
+    - poetry run black --check command_log
+    - poetry run tox
