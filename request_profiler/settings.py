@@ -15,8 +15,8 @@ RULESET_CACHE_TIMEOUT = getattr(
 # use with caution - this will force the db.connection to store queries
 FORCE_DEBUG_CURSOR = getattr(settings, "REQUEST_PROFILER_FORCE_DEBUG_CURSOR", False)
 
-# This is a function that can be used to override all rules to exclude requests from profiling
-# e.g. you can use this to ignore staff, or search engine bots, etc.
+# This is a function that can be used to override all rules to exclude requests
+# from profiling e.g. you can use this to ignore staff, or search engine bots, etc.
 GLOBAL_EXCLUDE_FUNC = getattr(
     settings,
     "REQUEST_PROFILER_GLOBAL_EXCLUDE_FUNC",

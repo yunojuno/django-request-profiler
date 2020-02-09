@@ -1,6 +1,5 @@
 from django.test import TestCase
 from django.urls import reverse
-
 from request_profiler import settings
 from request_profiler.models import ProfilingRecord, RuleSet
 
@@ -8,8 +7,8 @@ from request_profiler.models import ProfilingRecord, RuleSet
 class ViewTests(TestCase):
     def setUp(self):
         # set up one, catch-all rule.
-        self.rule = RuleSet(enabled=True)
-        self.rule.save()
+        # RuleSet.objects.all().delete()
+        self.rule = RuleSet.objects.create(enabled=True)
 
     def test_rules_match_response(self):
         url = reverse("test_response")
@@ -76,13 +75,6 @@ class ViewTests(TestCase):
         record = ProfilingRecord.objects.get()
         self.assertIsNone(record.user)
         self.assertEqual(record.session_key, "")
-
-    def test_no_rules_match(self):
-        self.rule.delete()
-        url = reverse("test_response")
-        response = self.client.get(url)
-        self.assertFalse(response.has_header("X-Profiler-Duration"))
-        self.assertFalse(ProfilingRecord.objects.exists())
 
     def test_404(self):
         # Validate that the profiler handles an error page

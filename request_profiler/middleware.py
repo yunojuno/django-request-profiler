@@ -1,6 +1,12 @@
+from __future__ import annotations
+
 import logging
+from typing import Any, Callable, List
 
 from django.contrib.auth.models import AnonymousUser
+from django.db.models.query import QuerySet
+from django.http.request import HttpRequest
+from django.http.response import HttpResponse
 from django.utils.deprecation import MiddlewareMixin
 
 from . import settings
@@ -11,7 +17,8 @@ logger = logging.getLogger(__name__)
 
 
 class ProfilingMiddleware(MiddlewareMixin):
-    """Middleware used to time request-response cycle.
+    """
+    Middleware used to time request-response cycle.
 
     This middleware uses the `process_request` and `process_response`
     methods to both determine whether the request should be profiled
@@ -24,18 +31,24 @@ class ProfilingMiddleware(MiddlewareMixin):
 
     """
 
-    def match_rules(self, request, rules):
+    def match_rules(self, request: HttpRequest, rules: QuerySet) -> List[RuleSet]:
         """Return subset of a list of rules that match a request."""
         user = getattr(request, "user", AnonymousUser())
         return [
             r for r in rules if r.match_uri(request.path) and r.match_user(user)
         ]  # noqa
 
-    def process_request(self, request):
+    def process_request(self, request: HttpRequest) -> None:
         """Start profiling."""
         request.profiler = ProfilingRecord().start()
 
-    def process_view(self, request, view_func, view_args, view_kwargs):
+    def process_view(
+        self,
+        request: HttpRequest,
+        view_func: Callable,
+        view_args: Any,
+        view_kwargs: Any,
+    ) -> None:
         """Add view_func to the profiler info."""
         # force the creation of a valid session by saving it.
         if (
@@ -50,8 +63,11 @@ class ProfilingMiddleware(MiddlewareMixin):
         else:
             request.profiler.view_func_name = view_func.__class__.__name__
 
-    def process_response(self, request, response):
-        """Add response information and save the profiler record.
+    def process_response(
+        self, request: HttpRequest, response: HttpResponse
+    ) -> HttpResponse:
+        """
+        Add response information and save the profiler record.
 
         By the time we get here, we've run all the middleware, the view_func
         has been called, and we've rendered the templates.
@@ -61,9 +77,8 @@ class ProfilingMiddleware(MiddlewareMixin):
         and aborting the save if any listeners respond False.
 
         """
-        assert (
-            getattr(request, "profiler", None) is not None
-        ), "Request has no profiler attached."
+        if not getattr(request, "profiler", None):
+            raise ValueError("Request has no profiler attached.")
 
         # call the global exclude first, as there's no point continuing if this
         # says no.
