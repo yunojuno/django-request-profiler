@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-request-profiler"
-version = "0.15"
+version = "0.16.dev0"
 description = "A simple Django project profiler for timing HTTP requests."
 authors = ["YunoJuno <code@yunojuno.com>"]
 license = "MIT"
@@ -13,12 +13,11 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Framework :: Django",
-    "Framework :: Django :: 2.0",
-    "Framework :: Django :: 2.1",
     "Framework :: Django :: 2.2",
     "Framework :: Django :: 3.0",
-    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
 ]
 packages = [
     { include = "request_profiler" }
@@ -26,16 +25,14 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.7"
-django = "^2.0 || ^3.0"
-six = "^1.13"
+django = "^2.2 || ^3.0"
 
 [tool.poetry.dev-dependencies]
-black = {version = "==19.3b0", allows-prereleases = true}
+black = {version = "==19.10b0", allow-prereleases = true}
 coverage = "^4.5"
 dj-database-url = "^0.5.0"
 isort = "^4.3"
 pylint = "^2.4"
-pylint-django = "^2.0"
 pytest = "^3.0"
 pytest-cov = "^2.7"
 pytest-django = "^3.5"

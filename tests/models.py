@@ -69,7 +69,7 @@ class CustomUser(AbstractBaseUser):
     objects = CustomUserManager()
 
     class Meta:
-        app_label = "test_app"
+        app_label = "tests"
 
     def get_full_name(self):
         return self.mobile_number

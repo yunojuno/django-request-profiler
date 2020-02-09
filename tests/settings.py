@@ -8,7 +8,7 @@ DJANGO_VERSION = StrictVersion(django.get_version())
 DEBUG = True
 TEMPLATE_DEBUG = True
 
-DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": "test_db"}}
+DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"}}
 
 INSTALLED_APPS = (
     "django.contrib.admin",
@@ -18,9 +18,7 @@ INSTALLED_APPS = (
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "request_profiler",
-    "test_app",
-    # uncomment to enable the coverage tests to run
-    # 'django_coverage',
+    "tests",
 )
 
 MIDDLEWARE = [
@@ -81,7 +79,7 @@ LOGGING = {
     },
 }
 
-ROOT_URLCONF = "test_app.urls"
+ROOT_URLCONF = "tests.urls"
 
 ###################################################
 # django_coverage overrides
@@ -107,4 +105,4 @@ COVERAGE_MODULE_EXCLUDES = [
 # turn off caching for tests
 REQUEST_PROFILER_RULESET_CACHE_TIMEOUT = 0
 
-# AUTH_USER_MODEL = 'test_app.CustomUser'
+# AUTH_USER_MODEL = 'tests.CustomUser'

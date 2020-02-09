@@ -1,33 +1,35 @@
+from __future__ import annotations
+
 import logging
 import re
+from typing import TYPE_CHECKING, Any
 
 from django.conf import settings as django_settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import connection, models
+from django.db.models.query import QuerySet
+from django.http import HttpRequest, HttpResponse
 from django.utils import timezone
 
 from . import settings
 
+if TYPE_CHECKING:
+    from django_settings import AUTH_USER_MODEL
+
+
 logger = logging.getLogger(__name__)
 
 
-class RuleSetManager(models.Manager):
-    """Custom model manager for RuleSet instances."""
+class RuleSetQuerySet(models.query.QuerySet):
+    """Custom QuerySet for RuleSet instances."""
 
-    def get_queryset_compat(self):
-        # Support the Django get_query_set -> get_queryset API change
-        get_queryset = (
-            self.get_query_set if hasattr(self, "get_query_set") else self.get_queryset
-        )
-        return get_queryset()
-
-    def live_rules(self):
+    def live_rules(self) -> QuerySet:
         """Return enabled rules."""
         rulesets = cache.get(settings.RULESET_CACHE_KEY)
         if rulesets is None:
-            rulesets = self.get_queryset_compat().filter(enabled=True)
+            rulesets = self.filter(enabled=True)
             cache.set(
                 settings.RULESET_CACHE_KEY, rulesets, settings.RULESET_CACHE_TIMEOUT
             )
@@ -70,17 +72,17 @@ class RuleSet(models.Model):
         verbose_name="User group filter",
     )
     # use the custom model manager
-    objects = RuleSetManager()
+    objects = RuleSetQuerySet.as_manager()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Profiling rule #{}".format(self.pk)
 
     @property
-    def has_group_filter(self):
+    def has_group_filter(self) -> bool:
         return len(self.user_group_filter.strip()) > 0
 
-    def clean(self):
-        """Ensure that user_filter_group is only set if user_filter_type is appropriate."""
+    def clean(self) -> None:
+        """Ensure that user_filter_group and user_filter_type values are appropriate."""
         if self.has_group_filter and self.user_filter_type != RuleSet.USER_FILTER_GROUP:
             raise ValidationError(
                 "User filter type must be 'group' if you specify a group."
@@ -93,15 +95,16 @@ class RuleSet(models.Model):
                 "You must specify a group if the filter type is 'group'."
             )
 
-    def match_uri(self, request_uri):
-        """Return True if there is a uri_regex and it matches.
+    def match_uri(self, request_uri: str) -> bool:
+        """
+        Return True if there is a uri_regex and it matches.
 
         Args:
-            request_uri: string, the HttpRequest.build_absolute_uri(), used
+            request_uri: the HttpRequest.build_absolute_uri(), used
                 to match against all the uri_regex.
 
         Returns True if there is a uri_regex and it matches, or if there
-            there is no uri_regex, in which the match is implicit.
+        there is no uri_regex, in which the match is implicit.
 
         """
         regex = self.uri_regex.strip()
@@ -110,7 +113,7 @@ class RuleSet(models.Model):
         else:
             return re.search(regex, request_uri) is not None
 
-    def match_user(self, user):
+    def match_user(self, user: AUTH_USER_MODEL) -> bool:
         """Return True if the user passes the various user filters."""
         # treat no user (i.e. has not been added) as AnonymousUser()
         user = user or AnonymousUser()
@@ -131,7 +134,6 @@ class RuleSet(models.Model):
 
 
 class ProfilingRecord(models.Model):
-
     """Record of a request and its response."""
 
     user = models.ForeignKey(
@@ -156,10 +158,14 @@ class ProfilingRecord(models.Model):
         null=True,
     )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Profiling record #{}".format(self.pk)
 
-    def start(self):
+    def save(self, *args: Any, **kwargs: Any) -> ProfilingRecord:
+        super().save(*args, **kwargs)
+        return self
+
+    def start(self) -> ProfilingRecord:
         """Set start_ts from current datetime."""
         self.start_ts = timezone.now()
         self.end_ts = None
@@ -171,14 +177,13 @@ class ProfilingRecord(models.Model):
         return self
 
     @property
-    def elapsed(self):
-        """Calculated time elapsed so far."""
-        assert (
-            self.start_ts is not None
-        ), "You must 'start' before you can get elapsed time."
+    def elapsed(self) -> float:
+        """Time (in seconds) elapsed so far."""
+        if self.start_ts is None:
+            raise ValueError("You must 'start' before you can get elapsed time.")
         return (timezone.now() - self.start_ts).total_seconds()
 
-    def set_request(self, request):
+    def set_request(self, request: HttpRequest) -> ProfilingRecord:
         """Extract values from HttpRequest and store locally."""
         self.request = request
         self.http_method = request.method
@@ -203,18 +208,17 @@ class ProfilingRecord(models.Model):
             self.user = request.user
         return self
 
-    def set_response(self, response):
+    def set_response(self, response: HttpResponse) -> ProfilingRecord:
         """Extract values from HttpResponse and store locally."""
         self.response = response
         self.response_status_code = response.status_code
         self.response_content_length = len(response.content)
         return self
 
-    def stop(self):
+    def stop(self) -> ProfilingRecord:
         """Set end_ts and duration from current datetime."""
-        assert (
-            self.start_ts is not None
-        ), "You must 'start' before you can 'stop'"  # noqa
+        if self.start_ts is None:
+            raise ValueError("You must 'start' before you can 'stop'")
         self.end_ts = timezone.now()
         self.duration = (self.end_ts - self.start_ts).total_seconds()
         self.query_count = len(connection.queries) - self._query_count
@@ -223,7 +227,7 @@ class ProfilingRecord(models.Model):
             self.response["X-Profiler-Duration"] = self.duration
         return self
 
-    def cancel(self):
+    def cancel(self) -> ProfilingRecord:
         """Cancel the profile by setting is_cancelled to True."""
         self.start_ts = None
         self.end_ts = None
@@ -231,10 +235,11 @@ class ProfilingRecord(models.Model):
         self.is_cancelled = True
         return self
 
-    def capture(self):
+    def capture(self) -> ProfilingRecord:
         """Call stop() and save() on the profile if is_cancelled is False."""
         if getattr(self, "is_cancelled", False) is True:
             logger.debug("%r has been cancelled.", self)
             return self
         else:
-            return self.stop().save()
+            self.stop().save()
+            return self
