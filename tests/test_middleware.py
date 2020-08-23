@@ -68,7 +68,7 @@ class ProfilingMiddlewareDefaultUserTests(TestCase):
         request.user = self.anon
         self.assertTrue(r1.match_uri, request.path)
 
-        middleware = ProfilingMiddleware()
+        middleware = ProfilingMiddleware(get_response=lambda r: None)
         self.assertEqual(middleware.match_rules(request, [r1]), [r1])
 
         # now change the uri_regex so we no longer get a match
@@ -87,7 +87,7 @@ class ProfilingMiddlewareDefaultUserTests(TestCase):
 
     def test_process_request(self):
         request = self.factory.get("/")
-        ProfilingMiddleware().process_request(request)
+        ProfilingMiddleware(get_response=lambda r: None).process_request(request)
         # this implicitly checks that the profile is attached,
         # and that start() has been called.
         self.assertIsNotNone(request.profiler.elapsed)
@@ -95,19 +95,21 @@ class ProfilingMiddlewareDefaultUserTests(TestCase):
     def test_process_view(self):
         request = self.factory.get("/")
         request.profiler = ProfilingRecord()
-        ProfilingMiddleware().process_view(request, dummy_view_func, [], {})
+        middleware = ProfilingMiddleware(get_response=lambda r: None)
+        middleware.process_view(request, dummy_view_func, [], {})
         self.assertEqual(request.profiler.view_func_name, "dummy_view_func")
 
     def test_process_view__as_callable_object(self):
         request = self.factory.get("/")
         request.profiler = ProfilingRecord()
-        ProfilingMiddleware().process_view(request, DummyView(), [], {})
+        middleware = ProfilingMiddleware(get_response=lambda r: None)
+        middleware.process_view(request, DummyView(), [], {})
         self.assertEqual(request.profiler.view_func_name, "DummyView")
 
     def test_process_response(self):
 
         request = self.factory.get("/")
-        middleware = ProfilingMiddleware()
+        middleware = ProfilingMiddleware(get_response=lambda r: None)
         with self.assertRaises(ValueError):
             middleware.process_response(request, None)
 
@@ -130,7 +132,7 @@ class ProfilingMiddlewareDefaultUserTests(TestCase):
 
         request = self.factory.get("/")
         request.profiler = ProfilingRecord().start()
-        middleware = ProfilingMiddleware()
+        middleware = ProfilingMiddleware(get_response=lambda r: None)
 
         # try matching a rule, anc checking response values
         r1 = RuleSet()
@@ -156,7 +158,7 @@ class ProfilingMiddlewareDefaultUserTests(TestCase):
         RuleSet().save()
         request = self.factory.get("/")
         request.profiler = ProfilingRecord().start()
-        middleware = ProfilingMiddleware()
+        middleware = ProfilingMiddleware(get_response=lambda r: None)
         # process normally, record is saved.
         middleware.process_response(request, MockResponse(200))
         self.assertIsNotNone(request.profiler.id)
@@ -196,7 +198,7 @@ class ProfilingMiddlewareCustomUserTests(TestCase):
         request.user = self.anon
         self.assertTrue(r1.match_uri, request.path)
 
-        middleware = ProfilingMiddleware()
+        middleware = ProfilingMiddleware(get_response=lambda r: None)
         self.assertEqual(middleware.match_rules(request, [r1]), [r1])
 
         # now change the uri_regex so we no longer get a match
@@ -215,7 +217,8 @@ class ProfilingMiddlewareCustomUserTests(TestCase):
 
     def test_process_request(self):
         request = self.factory.get("/")
-        ProfilingMiddleware().process_request(request)
+        middleware = ProfilingMiddleware(get_response=lambda r: None)
+        middleware.process_request(request)
         # this implicitly checks that the profile is attached,
         # and that start() has been called.
         self.assertIsNotNone(request.profiler.elapsed)
@@ -223,19 +226,21 @@ class ProfilingMiddlewareCustomUserTests(TestCase):
     def test_process_view(self):
         request = self.factory.get("/")
         request.profiler = ProfilingRecord()
-        ProfilingMiddleware().process_view(request, dummy_view_func, [], {})
+        middleware = ProfilingMiddleware(get_response=lambda r: None)
+        middleware.process_view(request, dummy_view_func, [], {})
         self.assertEqual(request.profiler.view_func_name, "dummy_view_func")
 
     def test_process_view__as_callable_object(self):
         request = self.factory.get("/")
         request.profiler = ProfilingRecord()
-        ProfilingMiddleware().process_view(request, DummyView(), [], {})
+        middleware = ProfilingMiddleware(get_response=lambda r: None)
+        middleware.process_view(request, DummyView(), [], {})
         self.assertEqual(request.profiler.view_func_name, "DummyView")
 
     def test_process_response(self):
 
         request = self.factory.get("/")
-        middleware = ProfilingMiddleware()
+        middleware = ProfilingMiddleware(get_response=lambda r: None)
         with self.assertRaises(AssertionError):
             middleware.process_response(request, None)
 
@@ -258,7 +263,7 @@ class ProfilingMiddlewareCustomUserTests(TestCase):
 
         request = self.factory.get("/")
         request.profiler = ProfilingRecord().start()
-        middleware = ProfilingMiddleware()
+        middleware = ProfilingMiddleware(get_response=lambda r: None)
 
         # try matching a rule, anc checking response values
         r1 = RuleSet()
@@ -284,7 +289,7 @@ class ProfilingMiddlewareCustomUserTests(TestCase):
         RuleSet().save()
         request = self.factory.get("/")
         request.profiler = ProfilingRecord().start()
-        middleware = ProfilingMiddleware()
+        middleware = ProfilingMiddleware(get_response=lambda r: None)
         # process normally, record is saved.
         middleware.process_response(request, MockResponse(200))
         self.assertIsNotNone(request.profiler.id)
