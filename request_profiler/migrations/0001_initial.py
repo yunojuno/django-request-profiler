@@ -41,7 +41,7 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         blank=True,
                         to=settings.AUTH_USER_MODEL,
-                        on_delete=models.CASCADE,
+                        on_delete=models.SET_NULL,
                         null=True,
                     ),
                 ),

@@ -137,7 +137,10 @@ class ProfilingRecord(models.Model):
     """Record of a request and its response."""
 
     user = models.ForeignKey(
-        django_settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True
+        django_settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
     )
     session_key = models.CharField(blank=True, max_length=40)
     start_ts = models.DateTimeField(verbose_name="Request started at")
