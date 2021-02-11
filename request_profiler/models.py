@@ -94,6 +94,11 @@ class RuleSet(models.Model):
             raise ValidationError(
                 "You must specify a group if the filter type is 'group'."
             )
+        # check regex is a valid regex
+        try:
+            re.search(self.uri_regex, "/")
+        except re.error as ex:
+            raise ValidationError(f"Invalid uri_regex (r'{self.uri_regex}'): {ex}")
 
     def match_uri(self, request_uri: str) -> bool:
         """
@@ -110,8 +115,11 @@ class RuleSet(models.Model):
         regex = self.uri_regex.strip()
         if regex == "":
             return True
-        else:
+        try:
             return re.search(regex, request_uri) is not None
+        except re.error:
+            logger.exception("Regex error running request profiler.")
+        return False
 
     def match_user(self, user: AUTH_USER_MODEL) -> bool:
         """Return True if the user passes the various user filters."""

@@ -110,6 +110,12 @@ class RuleSetModelTests(TestCase):
         ruleset.user_group_filter = ""
         self.assertRaises(ValidationError, ruleset.clean)
 
+    def test_clean_bad_regex(self):
+        # try with a bad regex
+        ruleset = RuleSet()
+        ruleset.uri_regex = "*"
+        self.assertRaises(ValidationError, ruleset.clean)
+
     def test_match_uri(self):
         ruleset = RuleSet("")
         uri = "/test/"
@@ -119,6 +125,7 @@ class RuleSetModelTests(TestCase):
             ("^/test", True),
             (".", True),
             ("/x", False),
+            ("*", False),  # bad regex - will fail
         )
 
         for r in regexes:
