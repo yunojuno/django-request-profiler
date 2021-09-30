@@ -1,9 +1,4 @@
-from distutils.version import StrictVersion
 from os import path
-
-import django
-
-DJANGO_VERSION = StrictVersion(django.get_version())
 
 DEBUG = True
 TEMPLATE_DEBUG = True
@@ -52,7 +47,7 @@ TEMPLATES = [
 
 STATIC_URL = "/static/"
 
-SECRET_KEY = "secret"
+SECRET_KEY = "secret"  # noqa: S105
 
 LOGGING = {
     "version": 1,

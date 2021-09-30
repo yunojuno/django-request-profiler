@@ -5,8 +5,9 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import connection
 from django.test import RequestFactory, TestCase
+
 from request_profiler import settings
-from request_profiler.models import ProfilingRecord, RuleSet, RuleSetQuerySet
+from request_profiler.models import ProfilingRecord, RuleSet
 
 from .models import CustomUser
 from .utils import skipIfCustomUser, skipIfDefaultUser
@@ -46,7 +47,7 @@ class RuleSetQuerySetTests(TestCase):
 
     def test_live_rules(self):
 
-        r1 = RuleSet.objects.create(uri_regex="", enabled=True)
+        _ = RuleSet.objects.create(uri_regex="", enabled=True)
         self.assertEqual(RuleSet.objects.live_rules().count(), 1)
 
         r2 = RuleSet.objects.create(uri_regex="", enabled=True)

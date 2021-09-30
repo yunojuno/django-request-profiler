@@ -1,17 +1,14 @@
-import datetime
-
 from django.apps import apps
 from django.contrib.auth.models import AnonymousUser, Group, User
-from django.core.cache import cache
-from django.core.exceptions import ValidationError
 from django.db import connection
 from django.db.migrations.autodetector import MigrationAutodetector
 from django.db.migrations.executor import MigrationExecutor
 from django.db.migrations.state import ProjectState
 from django.test import RequestFactory, TestCase
+
 from request_profiler import settings
 from request_profiler.middleware import ProfilingMiddleware, request_profile_complete
-from request_profiler.models import ProfilingRecord, RuleSet, RuleSetQuerySet
+from request_profiler.models import ProfilingRecord, RuleSet
 
 from .models import CustomUser
 from .utils import skipIfCustomUser, skipIfDefaultUser

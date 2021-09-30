@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-request-profiler"
-version = "0.16.1"
+version = "0.16.2"
 description = "A simple Django project profiler for timing HTTP requests."
 authors = ["YunoJuno <code@yunojuno.com>"]
 license = "MIT"
@@ -16,6 +16,7 @@ classifiers = [
     "Framework :: Django :: 2.2",
     "Framework :: Django :: 3.0",
     "Framework :: Django :: 3.1",
+    "Framework :: Django :: 3.2",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",

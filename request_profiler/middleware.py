@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable, List
+from typing import Any, Callable
 
 from django.contrib.auth.models import AnonymousUser
 from django.db.models.query import QuerySet
@@ -31,7 +31,7 @@ class ProfilingMiddleware(MiddlewareMixin):
 
     """
 
-    def match_rules(self, request: HttpRequest, rules: QuerySet) -> List[RuleSet]:
+    def match_rules(self, request: HttpRequest, rules: QuerySet) -> list[RuleSet]:
         """Return subset of a list of rules that match a request."""
         user = getattr(request, "user", AnonymousUser())
         return [
