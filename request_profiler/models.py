@@ -10,7 +10,7 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import connection, models
 from django.db.models.query import QuerySet
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, StreamingHttpResponse
 from django.utils import timezone
 
 from . import settings
@@ -223,7 +223,10 @@ class ProfilingRecord(models.Model):
         """Extract values from HttpResponse and store locally."""
         self.response = response
         self.response_status_code = response.status_code
-        self.response_content_length = len(response.content)
+        if isinstance(response, StreamingHttpResponse):
+            self.response_content_length = -1
+        else:
+            self.response_content_length = len(response.content)
         return self
 
     def stop(self) -> ProfilingRecord:
