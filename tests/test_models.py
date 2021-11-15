@@ -4,6 +4,7 @@ from django.contrib.auth.models import AnonymousUser, Group, User
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import connection
+from django.http.response import HttpResponse, StreamingHttpResponse
 from django.test import RequestFactory, TestCase
 
 from request_profiler import settings
@@ -30,9 +31,10 @@ class MockSession:
 
 
 class MockResponse:
-    def __init__(self, status_code):
+    def __init__(self, status_code, type, content):
         self.status_code = status_code
-        self.content = "Hello, World!"
+        self.content = content 
+        self.type = type
         self.values = {}
 
     def __getitem__(self, key):
@@ -301,7 +303,7 @@ class ProfilingRecordModelTests(TestCase):
     def test_capture(self):
         # repeat, but this time cancel before capture
         profile = ProfilingRecord()
-        response = MockResponse(200)
+        response = MockResponse(200, HttpResponse, "Hello, World!")
         profile.start().set_response(response).capture()
         self.assertIsNotNone(profile.start_ts)
         self.assertIsNotNone(profile.end_ts)
@@ -395,8 +397,18 @@ class ProfilingRecordModelTests(TestCase):
         self.assertEqual(profile.user, None)
 
     def test_set_response(self):
-        response = MockResponse(200)
+        response = MockResponse(200, HttpResponse, "Hello, World!")
         profiler = ProfilingRecord().start().set_response(response)
         self.assertEqual(profiler.response, response)
+        self.assertIsInstance(profiler.response_type, HttpResponse)
         self.assertEqual(profiler.response_status_code, 200)
         self.assertEqual(profiler.response_content_length, 13)
+
+    def test_set_response_streaming(self):
+        response = MockResponse(200, StreamingHttpResponse, '')
+        profiler = ProfilingRecord().start().set_response(response)
+        self.assertEqual(profiler.response, response)
+        self.assertIsInstance(profiler.response_type, StreamingHttpResponse)
+        self.assertEqual(profiler.response_status_code, 200)
+        self.assertEqual(profiler.response_content_length, 0)
+        
