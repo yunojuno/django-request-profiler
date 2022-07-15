@@ -10,7 +10,7 @@ from django.http.response import HttpResponse
 from django.utils.deprecation import MiddlewareMixin
 
 from . import settings
-from .models import ProfilingRecord, RuleSet
+from .models import BadProfilerError, ProfilingRecord, RuleSet
 from .signals import request_profile_complete
 
 logger = logging.getLogger(__name__)
@@ -40,7 +40,15 @@ class ProfilingMiddleware(MiddlewareMixin):
 
     def process_request(self, request: HttpRequest) -> None:
         """Start profiling."""
+        # force the creation of a valid session by saving it.
         request.profiler = ProfilingRecord().start()
+        if (
+            hasattr(request, "session")
+            and request.session.session_key is None
+            and settings.STORE_ANONYMOUS_SESSIONS is True
+        ):
+            request.session.save()
+        request.profiler.process_request(request)
 
     def process_view(
         self,
@@ -50,18 +58,7 @@ class ProfilingMiddleware(MiddlewareMixin):
         view_kwargs: Any,
     ) -> None:
         """Add view_func to the profiler info."""
-        # force the creation of a valid session by saving it.
-        if (
-            hasattr(request, "session")
-            and request.session.session_key is None
-            and settings.STORE_ANONYMOUS_SESSIONS is True
-        ):
-            request.session.save()
-
-        if hasattr(view_func, "__name__"):
-            request.profiler.view_func_name = view_func.__name__
-        else:
-            request.profiler.view_func_name = view_func.__class__.__name__
+        request.profiler.process_view(request, view_func)
 
     def process_response(
         self, request: HttpRequest, response: HttpResponse
@@ -77,8 +74,10 @@ class ProfilingMiddleware(MiddlewareMixin):
         and aborting the save if any listeners respond False.
 
         """
-        if not getattr(request, "profiler", None):
-            raise ValueError("Request has no profiler attached.")
+        try:
+            profiler = request.profiler
+        except AttributeError:
+            raise BadProfilerError("Request has no profiler attached.")
 
         # call the global exclude first, as there's no point continuing if this
         # says no.
@@ -89,7 +88,7 @@ class ProfilingMiddleware(MiddlewareMixin):
         # see if we have any matching rules
         rules = self.match_rules(request, RuleSet.objects.live_rules())
 
-        # clean up after outselves
+        # clean up after ourselves
         if len(rules) == 0:
             logger.debug(
                 "Deleting %r as request matches no live rules.", request.profiler
@@ -97,15 +96,19 @@ class ProfilingMiddleware(MiddlewareMixin):
             del request.profiler
             return response
 
-        # extract properties from request and response for storing later
-        profiler = request.profiler.set_request(request).set_response(response)
+        # extract properties from response for storing later
+        profiler.process_response(response)
 
         # send signal so that receivers can intercept profiler
         request_profile_complete.send(
-            sender=self.__class__, request=request, response=response, instance=profiler
+            sender=self.__class__,
+            request=request,
+            response=response,
+            instance=profiler,
         )
-        # if any signal receivers have called cancel() on the profiler, then
-        # this method will _not_ save it.
-        profiler.capture()
+        # if any signal receivers have called cancel() on the profiler,
+        # then we do not want to capture it.
+        if profiler.is_running:
+            profiler.capture()
 
         return response

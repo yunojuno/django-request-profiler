@@ -17,14 +17,14 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE = [
-    # this package's middleware
-    "request_profiler.middleware.ProfilingMiddleware",
     # default django middleware
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
+    # this package's middleware
+    "request_profiler.middleware.ProfilingMiddleware",
 ]
 
 PROJECT_DIR = path.abspath(path.join(path.dirname(__file__)))

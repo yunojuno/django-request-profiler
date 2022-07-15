@@ -7,7 +7,7 @@ from django.db import connection
 from django.test import RequestFactory, TestCase
 
 from request_profiler import settings
-from request_profiler.models import ProfilingRecord, RuleSet
+from request_profiler.models import BadProfilerError, ProfilingRecord, RuleSet
 
 from .models import CustomUser
 from .utils import skipIfCustomUser, skipIfDefaultUser
@@ -248,10 +248,13 @@ class ProfilingRecordModelTests(TestCase):
         self.assertIsNotNone(repr(profile))
 
     def test_start(self):
-        profile = ProfilingRecord().start()
+        profile = ProfilingRecord()
+        self.assertFalse(profile.is_running)
+        profile.start()
         self.assertIsNotNone(profile.start_ts)
         self.assertIsNone(profile.end_ts)
         self.assertIsNone(profile.duration)
+        self.assertTrue(profile.is_running)
         # now check again to see that end and duration are cleared
         profile.end_ts = datetime.datetime.utcnow()
         profile.duration = 1
@@ -259,6 +262,7 @@ class ProfilingRecordModelTests(TestCase):
         self.assertIsNotNone(profile.start_ts)
         self.assertIsNone(profile.end_ts)
         self.assertIsNone(profile.duration)
+        self.assertTrue(profile.is_running)
 
     def test_start__force_debug__FALSE(self):
         """Test the FORCE_DEBUG_CURSOR setting."""
@@ -284,36 +288,40 @@ class ProfilingRecordModelTests(TestCase):
         self.assertIsNotNone(profile.end_ts)
         self.assertIsNotNone(profile.duration)
         self.assertTrue(profile.duration > 0)
+        self.assertFalse(profile.is_running)
 
     def test_cancel(self):
         profile = ProfilingRecord().cancel()
         self.assertIsNone(profile.start_ts)
         self.assertIsNone(profile.end_ts)
         self.assertIsNone(profile.duration)
-        self.assertTrue(profile.is_cancelled)
+        self.assertFalse(profile.is_running)
         # same thing, but this time post-start
         profile = ProfilingRecord().start().cancel()
         self.assertIsNone(profile.start_ts)
         self.assertIsNone(profile.end_ts)
         self.assertIsNone(profile.duration)
-        self.assertTrue(profile.is_cancelled)
+        self.assertFalse(profile.is_running)
 
     def test_capture(self):
         # repeat, but this time cancel before capture
         profile = ProfilingRecord()
         response = MockResponse(200)
-        profile.start().set_response(response).capture()
+        profile.start()
+        profile.process_response(response)
+        profile.capture()
         self.assertIsNotNone(profile.start_ts)
         self.assertIsNotNone(profile.end_ts)
         self.assertIsNotNone(profile.duration)
         self.assertIsNotNone(profile.id)
+        self.assertFalse(profile.is_running)
         self.assertEqual(response["X-Profiler-Duration"], profile.duration)
 
-        profile = ProfilingRecord().cancel().capture()
-        self.assertIsNone(profile.start_ts)
-        self.assertIsNone(profile.end_ts)
-        self.assertIsNone(profile.duration)
-        self.assertIsNone(profile.id)
+    def test_capture__BadProfileError(self):
+        profile = ProfilingRecord()
+        profile.start()
+        profile.cancel()
+        self.assertRaises(BadProfilerError, profile.capture)
 
     def test_elapsed(self):
         profile = ProfilingRecord()
@@ -325,7 +333,7 @@ class ProfilingRecordModelTests(TestCase):
         self.assertIsNone(profile.duration)
 
     @skipIfCustomUser
-    def test_set_request(self):
+    def test_process_request(self):
 
         factory = RequestFactory()
         request = factory.get("/test")
@@ -333,7 +341,7 @@ class ProfilingRecordModelTests(TestCase):
         request.META["HTTP_REFERER"] = "google.com"
         profile = ProfilingRecord()
 
-        profile.set_request(request)
+        profile.process_request(request)
         self.assertEqual(profile.request, request)
         self.assertEqual(profile.http_method, request.method)
         self.assertEqual(profile.request_uri, request.path)
@@ -345,21 +353,24 @@ class ProfilingRecordModelTests(TestCase):
 
         # test that we can set the session
         request.session = MockSession("test-session-key")
-        profile = ProfilingRecord().set_request(request)
+        profile = ProfilingRecord()
+        profile.process_request(request)
         self.assertEqual(profile.session_key, "test-session-key")
 
         # test that we can set the user
         request.user = User.objects.create_user("bob")
-        profile = ProfilingRecord().set_request(request)
+        profile = ProfilingRecord()
+        profile.process_request(request)
         self.assertEqual(profile.user, request.user)
 
         # but we do not save anonymous users
         request.user = AnonymousUser()
-        profile = ProfilingRecord().set_request(request)
+        profile = ProfilingRecord()
+        profile.process_request(request)
         self.assertEqual(profile.user, None)
 
     @skipIfDefaultUser
-    def test_set_request_with_custom_user(self):
+    def test_process_request_with_custom_user(self):
 
         factory = RequestFactory()
         request = factory.get("/test")
@@ -367,7 +378,7 @@ class ProfilingRecordModelTests(TestCase):
         request.META["HTTP_REFERER"] = "google.com"
         profile = ProfilingRecord()
 
-        profile.set_request(request)
+        profile.process_request(request)
         self.assertEqual(profile.request, request)
         self.assertEqual(profile.http_method, request.method)
         self.assertEqual(profile.request_uri, request.path)
@@ -379,24 +390,28 @@ class ProfilingRecordModelTests(TestCase):
 
         # test that we can set the session
         request.session = MockSession("test-session-key")
-        profile = ProfilingRecord().set_request(request)
+        profile = ProfilingRecord()
+        profile.process_request(request)
         self.assertEqual(profile.session_key, "test-session-key")
 
         # test that we can set the custom user
         request.user = CustomUser.objects.create_user(
             mobile_number="+886-999888777", password="pass11"
         )
-        profile = ProfilingRecord().set_request(request)
+        profile = ProfilingRecord()
+        profile.process_request(request)
         self.assertEqual(profile.user, request.user)
 
         # but we do not save anonymous users
         request.user = AnonymousUser()
-        profile = ProfilingRecord().set_request(request)
+        profile = ProfilingRecord()
+        profile.process_request(request)
         self.assertEqual(profile.user, None)
 
-    def test_set_response(self):
+    def test_process_response(self):
         response = MockResponse(200)
-        profiler = ProfilingRecord().start().set_response(response)
+        profiler = ProfilingRecord().start()
+        profiler.process_response(response)
         self.assertEqual(profiler.response, response)
         self.assertEqual(profiler.response_status_code, 200)
         self.assertEqual(profiler.response_content_length, 13)
