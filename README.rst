@@ -103,6 +103,28 @@ may want to, for instance, only profile a random subset of all requests.
             # calling cancel means that it won't be saved to the db
             profiler.cancel()
 
+An additional scenario where you may want to use the signal is to store
+the profiler records async - say if you are recording every request for
+a short period, and you don't want to add unnecessary inline database
+write operations. In this case you can use the ``stop()`` method, which
+will prevent the middleware from saving it directly (it will only save
+records where ``profiler.is_running`` is true, and both ``cancel`` and
+``stop`` set it to false).
+
+.. code:: python
+
+    from django.dispatch import receiver
+    from request_profiler.signals import request_profile_complete
+
+    @receiver(request_profiler_complete)
+    def on_request_profile_complete(sender, **kwargs):
+        profiler = kwargs.get('instance')
+        # stop the profiler to prevent it from being saved automatically
+        profiler.stop()
+        assert not profiler.is_running
+        # add a job to a queue to perform the save itself
+        queue.enqueue(profiler.save)
+
 
 Installation
 ------------

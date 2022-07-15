@@ -216,6 +216,9 @@ class ProfilingRecord(models.Model):
             self.user = request.user
 
     def _extract_view_func_name(self, view_func: Callable) -> str:
+        # the View.as_view() method sets this
+        if hasattr(view_func, "view_class"):
+            return view_func.view_class.__name__  # type:ignore
         return (
             view_func.__name__
             if hasattr(view_func, "__name__")
