@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable
 
 from django.conf import settings as django_settings
 from django.contrib.auth.models import AnonymousUser
@@ -12,6 +12,7 @@ from django.db import connection, models
 from django.db.models.query import QuerySet
 from django.http import HttpRequest, HttpResponse
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _lazy
 
 from . import settings
 
@@ -20,6 +21,10 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
+
+
+class BadProfilerError(ValueError):
+    pass
 
 
 class RuleSetQuerySet(models.query.QuerySet):
@@ -172,29 +177,21 @@ class ProfilingRecord(models.Model):
     def __str__(self) -> str:
         return "Profiling record #{}".format(self.pk)
 
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        self.is_running = False
+        super().__init__(*args, **kwargs)
+
     def save(self, *args: Any, **kwargs: Any) -> ProfilingRecord:
         super().save(*args, **kwargs)
-        return self
-
-    def start(self) -> ProfilingRecord:
-        """Set start_ts from current datetime."""
-        self.start_ts = timezone.now()
-        self.end_ts = None
-        self.duration = None
-        self.query_count = 0
-        self._query_count = len(connection.queries)
-        self._force_debug_cursor = connection.force_debug_cursor
-        connection.force_debug_cursor = settings.FORCE_DEBUG_CURSOR
         return self
 
     @property
     def elapsed(self) -> float:
         """Time (in seconds) elapsed so far."""
-        if self.start_ts is None:
-            raise ValueError("You must 'start' before you can get elapsed time.")
+        self.check_is_running()
         return (timezone.now() - self.start_ts).total_seconds()
 
-    def set_request(self, request: HttpRequest) -> ProfilingRecord:
+    def process_request(self, request: HttpRequest) -> None:
         """Extract values from HttpRequest and store locally."""
         self.request = request
         self.http_method = request.method
@@ -217,40 +214,67 @@ class ProfilingRecord(models.Model):
         # NB you can't store AnonymouseUsers, so don't bother trying
         if hasattr(request, "user") and request.user.is_authenticated:
             self.user = request.user
-        return self
 
-    def set_response(self, response: HttpResponse) -> ProfilingRecord:
+    def _extract_view_func_name(self, view_func: Callable) -> str:
+        # the View.as_view() method sets this
+        if hasattr(view_func, "view_class"):
+            return view_func.view_class.__name__  # type:ignore
+        return (
+            view_func.__name__
+            if hasattr(view_func, "__name__")
+            else view_func.__class__.__name__
+        )
+
+    def process_view(self, request: HttpRequest, view_func: Callable) -> None:
+        """Handle the process_view middleware event."""
+        self.view_func_name = self._extract_view_func_name(view_func)
+
+    def process_response(self, response: HttpResponse) -> None:
         """Extract values from HttpResponse and store locally."""
         self.response = response
         self.response_status_code = response.status_code
         self.response_content_length = len(response.content)
+
+    def check_is_running(self) -> ProfilingRecord:
+        """Raise BadProfilerError if profile is not running."""
+        if self.start_ts is None:
+            raise BadProfilerError(_lazy("RequestProfiler has not started."))
+        if not self.is_running:
+            raise BadProfilerError(_lazy("RequestProfiler is no longer running."))
+        return self
+
+    def start(self) -> ProfilingRecord:
+        """Set start_ts from current datetime."""
+        self.is_running = True
+        self.start_ts = timezone.now()
+        self.end_ts = None
+        self.duration = None
+        self.query_count = 0
+        self._query_count = len(connection.queries)
+        self._force_debug_cursor = connection.force_debug_cursor
+        connection.force_debug_cursor = settings.FORCE_DEBUG_CURSOR
         return self
 
     def stop(self) -> ProfilingRecord:
         """Set end_ts and duration from current datetime."""
-        if self.start_ts is None:
-            raise ValueError("You must 'start' before you can 'stop'")
+        self.check_is_running()
         self.end_ts = timezone.now()
         self.duration = (self.end_ts - self.start_ts).total_seconds()
         self.query_count = len(connection.queries) - self._query_count
         connection.force_debug_cursor = self._force_debug_cursor
         if hasattr(self, "response"):
             self.response["X-Profiler-Duration"] = self.duration
+        self.is_running = False
         return self
 
     def cancel(self) -> ProfilingRecord:
-        """Cancel the profile by setting is_cancelled to True."""
+        """Cancel the profile by setting is_running to False."""
         self.start_ts = None
         self.end_ts = None
         self.duration = None
-        self.is_cancelled = True
+        self.is_running = False
         return self
 
     def capture(self) -> ProfilingRecord:
-        """Call stop() and save() on the profile if is_cancelled is False."""
-        if getattr(self, "is_cancelled", False) is True:
-            logger.debug("%r has been cancelled.", self)
-            return self
-        else:
-            self.stop().save()
-            return self
+        """Call stop and save."""
+        return self.check_is_running().stop().save()
