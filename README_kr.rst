@@ -1,10 +1,3 @@
-
-.. image:: https://badge.fury.io/py/django-request-profiler.svg
-    :target: https://badge.fury.io/py/django-request-profiler
-
-.. image:: https://travis-ci.org/yunojuno/django-request-profiler.svg
-    :target: https://travis-ci.org/yunojuno/django-request-profiler
-
 장고 요청 프로파일 러
 ===========
 
@@ -68,7 +61,7 @@ RuleSets. 그러나 일치하는 경우 요청이 프로파일 링됩니다. Rul
 프로파일 링 될 수 있습니다.
 
 2. user_filter_type - 세 가지 선택 사항이 있습니다 - 모든 사용자 프로필, 프로필
-인증 된 사용자 만, 프로필에 인증 된 사용자는 주어진그룹 
+인증 된 사용자 만, 프로필에 인증 된 사용자는 주어진그룹
 - 예 : "프로파일 링"이라는 그룹을 만들고 원하는 사람을 추가하십시오.
 
 
@@ -110,8 +103,6 @@ RuleSets. 그러나 일치하는 경우 요청이 프로파일 링됩니다. Rul
 
 설치
 ------------
-
-이 앱은 v0.11부터 Django <1.7에 대한 지원을 중단했습니다.
 
 Django 프로젝트에서 앱으로 사용하려면 pip를 사용하십시오.
 
@@ -186,7 +177,7 @@ Django 프로젝트에서 앱으로 사용하려면 pip를 사용하십시오.
         'django.middleware.csrf.CsrfViewMiddleware',
         'django.contrib.messages.middleware.MessageMiddleware',
     ]
-    
+
 구성
 -------------
 

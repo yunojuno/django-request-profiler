@@ -1,13 +1,8 @@
-.. image:: https://badge.fury.io/py/django-request-profiler.svg
-    :target: https://badge.fury.io/py/django-request-profiler
-
-.. image:: https://travis-ci.org/yunojuno/django-request-profiler.svg
-    :target: https://travis-ci.org/yunojuno/django-request-profiler
-
 Django Request Profiler
 =======================
 
-**This package now requires Python3 and Django 1.11 and above. For previous versions please refer to the Python2 branch.**
+**This package now requires Python3 and Django 2.2 and above.
+For previous versions please refer to the Python2 branch.**
 
 A very simple request profiler for Django.
 
@@ -112,8 +107,6 @@ may want to, for instance, only profile a random subset of all requests.
 Installation
 ------------
 
-This app has dropped support for Django < 1.7, since v0.11.
-
 For use as the app in Django project, use pip:
 
 .. code:: shell
@@ -198,4 +191,3 @@ Licence
 -------
 
 MIT (see LICENCE)
-
