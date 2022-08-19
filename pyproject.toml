@@ -35,7 +35,7 @@ django = "^2.2 || ^3.0 || ^4.0"
 black = {version = "*", allow-prereleases = true}
 coverage = "*"
 # latest version of flake8 breaks bandit plugin
-flake8 = "^3.9.2"
+flake8 = "^4.0.1"
 flake8-bandit = "*"
 flake8-blind-except = "*"
 flake8-docstrings = "*"
