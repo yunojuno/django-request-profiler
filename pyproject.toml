@@ -18,6 +18,7 @@ classifiers = [
     "Framework :: Django :: 3.1",
     "Framework :: Django :: 3.2",
     "Framework :: Django :: 4.0",
+    "Framework :: Django :: 4.1",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -27,13 +28,14 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 django = "^2.2 || ^3.0 || ^4.0"
 
 [tool.poetry.dev-dependencies]
 black = {version = "*", allow-prereleases = true}
 coverage = "*"
-flake8 = "*"
+# latest version of flake8 breaks bandit plugin
+flake8 = "^3.9.2"
 flake8-bandit = "*"
 flake8-blind-except = "*"
 flake8-docstrings = "*"
