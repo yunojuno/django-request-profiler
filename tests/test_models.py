@@ -4,6 +4,7 @@ from django.contrib.auth.models import AnonymousUser, Group, User
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import connection
+from django.http import HttpResponse, StreamingHttpResponse
 from django.test import RequestFactory, TestCase
 
 from request_profiler import settings
@@ -33,6 +34,7 @@ class MockResponse:
     def __init__(self, status_code):
         self.status_code = status_code
         self.content = "Hello, World!"
+        self.type = HttpResponse
         self.values = {}
 
     def __getitem__(self, key):
@@ -40,6 +42,12 @@ class MockResponse:
 
     def __setitem__(self, key, value):
         self.values[key] = value
+
+
+class MockStreamingResponse(MockResponse):
+    def __init__(self, status_code):
+        super().__init__(status_code)
+        self.type = StreamingHttpResponse
 
 
 class RuleSetQuerySetTests(TestCase):
@@ -415,3 +423,11 @@ class ProfilingRecordModelTests(TestCase):
         self.assertEqual(profiler.response, response)
         self.assertEqual(profiler.response_status_code, 200)
         self.assertEqual(profiler.response_content_length, 13)
+
+    def test__stream_response_content_length(self):
+        response = StreamingHttpResponse("Hello, World!")
+        profiler = ProfilingRecord().start()
+        profiler.process_response(response)
+        self.assertEqual(profiler.response, response)
+        self.assertEqual(profiler.response_status_code, 200)
+        self.assertEqual(profiler.response_content_length, -1)

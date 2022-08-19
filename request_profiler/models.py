@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import TYPE_CHECKING, Any, Callable
+from typing import Any, Callable
 
 from django.conf import settings as django_settings
 from django.contrib.auth.models import AnonymousUser
@@ -10,15 +10,11 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import connection, models
 from django.db.models.query import QuerySet
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, StreamingHttpResponse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _lazy
 
 from . import settings
-
-if TYPE_CHECKING:
-    from django_settings import AUTH_USER_MODEL
-
 
 logger = logging.getLogger(__name__)
 
@@ -126,7 +122,7 @@ class RuleSet(models.Model):
             logger.exception("Regex error running request profiler.")
         return False
 
-    def match_user(self, user: AUTH_USER_MODEL) -> bool:
+    def match_user(self, user: django_settings.AUTH_USER_MODEL) -> bool:
         """Return True if the user passes the various user filters."""
         # treat no user (i.e. has not been added) as AnonymousUser()
         user = user or AnonymousUser()
@@ -225,6 +221,12 @@ class ProfilingRecord(models.Model):
             else view_func.__class__.__name__
         )
 
+    def _content_length(self, response: HttpResponse) -> int:
+        """Return the response content length."""
+        if isinstance(response, StreamingHttpResponse):
+            return -1
+        return len(response.content)
+
     def process_view(self, request: HttpRequest, view_func: Callable) -> None:
         """Handle the process_view middleware event."""
         self.view_func_name = self._extract_view_func_name(view_func)
@@ -233,7 +235,7 @@ class ProfilingRecord(models.Model):
         """Extract values from HttpResponse and store locally."""
         self.response = response
         self.response_status_code = response.status_code
-        self.response_content_length = len(response.content)
+        self.response_content_length = self._content_length(response)
 
     def check_is_running(self) -> ProfilingRecord:
         """Raise BadProfilerError if profile is not running."""
