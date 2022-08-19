@@ -4,6 +4,7 @@ from django.contrib.auth.models import AnonymousUser, Group, User
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import connection
+from django.http import HttpResponse, StreamingHttpResponse
 from django.test import RequestFactory, TestCase
 
 from request_profiler import settings
@@ -11,17 +12,6 @@ from request_profiler.models import BadProfilerError, ProfilingRecord, RuleSet
 
 from .models import CustomUser
 from .utils import skipIfCustomUser, skipIfDefaultUser
-
-# def dummy_view_func(request, **kwargs):
-#     """Fake function to pass into the process_view method."""
-#     pass
-
-
-# class DummyView(object):
-#     """Fake callable object to pass into the process_view method."""
-
-#     def __call__(self, request, **kwargs):
-#         pass
 
 
 class MockSession:
@@ -33,6 +23,7 @@ class MockResponse:
     def __init__(self, status_code):
         self.status_code = status_code
         self.content = "Hello, World!"
+        self.type = HttpResponse
         self.values = {}
 
     def __getitem__(self, key):
@@ -415,3 +406,11 @@ class ProfilingRecordModelTests(TestCase):
         self.assertEqual(profiler.response, response)
         self.assertEqual(profiler.response_status_code, 200)
         self.assertEqual(profiler.response_content_length, 13)
+
+    def test__stream_response_content_length(self):
+        response = StreamingHttpResponse("Hello, World!")
+        profiler = ProfilingRecord().start()
+        profiler.process_response(response)
+        self.assertEqual(profiler.response, response)
+        self.assertEqual(profiler.response_status_code, 200)
+        self.assertEqual(profiler.response_content_length, -1)
