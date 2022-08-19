@@ -13,17 +13,6 @@ from request_profiler.models import BadProfilerError, ProfilingRecord, RuleSet
 from .models import CustomUser
 from .utils import skipIfCustomUser, skipIfDefaultUser
 
-# def dummy_view_func(request, **kwargs):
-#     """Fake function to pass into the process_view method."""
-#     pass
-
-
-# class DummyView(object):
-#     """Fake callable object to pass into the process_view method."""
-
-#     def __call__(self, request, **kwargs):
-#         pass
-
 
 class MockSession:
     def __init__(self, session_key):
@@ -42,12 +31,6 @@ class MockResponse:
 
     def __setitem__(self, key, value):
         self.values[key] = value
-
-
-class MockStreamingResponse(MockResponse):
-    def __init__(self, status_code):
-        super().__init__(status_code)
-        self.type = StreamingHttpResponse
 
 
 class RuleSetQuerySetTests(TestCase):
