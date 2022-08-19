@@ -38,6 +38,9 @@ class ProfilingMiddleware(MiddlewareMixin):
             r for r in rules if r.match_uri(request.path) and r.match_user(user)
         ]  # noqa
 
+    def match_funcs(self, request: HttpRequest) -> bool:
+        return any(f(request) for f in settings.CUSTOM_FUNCTIONS)
+
     def process_request(self, request: HttpRequest) -> None:
         """Start profiling."""
         # force the creation of a valid session by saving it.
@@ -86,13 +89,16 @@ class ProfilingMiddleware(MiddlewareMixin):
             return response
 
         # see if we have any matching rules
-        rules = self.match_rules(request, RuleSet.objects.live_rules())
+        matches_rules = self.match_rules(request, RuleSet.objects.live_rules())
+        matches_funcs = self.match_funcs(request)
+        log_request = matches_rules or matches_funcs
 
         # clean up after ourselves
-        if len(rules) == 0:
+        if not log_request:
             logger.debug(
-                "Deleting %r as request matches no live rules.", request.profiler
-            )  # noqa
+                "Deleting %r as request matches no live rules.",
+                request.profiler,
+            )
             del request.profiler
             return response
 

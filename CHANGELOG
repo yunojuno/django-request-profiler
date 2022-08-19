@@ -6,4 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased - 1.0]
 
+### Added
+- Add new management command `truncate_request_profiler_logs`
+
+### Fixed
 - Fix for #17 - content-length of StreamingHttpResponse (@FlorinaAhmeti)
+
+### Removed
+- Drop support for Django <3.2
