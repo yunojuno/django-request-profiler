@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-request-profiler"
-version = "1.0.beta0"
+version = "1.0.beta1"
 description = "A simple Django project profiler for timing HTTP requests."
 authors = ["YunoJuno <code@yunojuno.com>"]
 license = "MIT"
