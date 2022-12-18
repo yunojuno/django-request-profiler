@@ -4,13 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased - 1.0 beta2]
-
-- Adds support for Python 3.11
-
-## [Unreleased - 1.0]
+## v1.0
 
 ### Added
+- Add support for Python 3.11
 - Add new management command `truncate_request_profiler_logs`
 
 ### Fixed
@@ -18,3 +15,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Removed
 - Drop support for Django <3.2
+- Drop support for Python 3.8
