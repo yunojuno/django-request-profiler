@@ -5,7 +5,6 @@ from django.utils import timezone
 
 
 class CustomUserManager(BaseUserManager):
-
     # override this method
     def _create_user(
         self,

@@ -104,7 +104,6 @@ class ProfilingMiddlewareDefaultUserTests(TestCase):
         self.assertEqual(request.profiler.view_func_name, "DummyView")
 
     def test_process_response(self):
-
         request = self.factory.get("/")
         middleware = ProfilingMiddleware(get_response=lambda r: None)
         with self.assertRaises(ValueError):
@@ -126,7 +125,6 @@ class ProfilingMiddlewareDefaultUserTests(TestCase):
         self.assertTrue(response["X-Profiler-Duration"], request.profiler.duration)
 
     def test_process_response_signal_cancellation(self):
-
         request = self.factory.get("/")
         request.profiler = ProfilingRecord().start()
         middleware = ProfilingMiddleware(get_response=lambda r: None)
@@ -150,7 +148,6 @@ class ProfilingMiddlewareDefaultUserTests(TestCase):
         self.assertIsNone(request.profiler.id)
 
     def test_global_exclude_function(self):
-
         # set the func to ignore everything
         RuleSet().save()
         request = self.factory.get("/")
@@ -235,7 +232,6 @@ class ProfilingMiddlewareCustomUserTests(TestCase):
         self.assertEqual(request.profiler.view_func_name, "DummyView")
 
     def test_process_response(self):
-
         request = self.factory.get("/")
         middleware = ProfilingMiddleware(get_response=lambda r: None)
         with self.assertRaises(AssertionError):
@@ -257,7 +253,6 @@ class ProfilingMiddlewareCustomUserTests(TestCase):
         self.assertTrue(response["X-Profiler-Duration"], request.profiler.duration)
 
     def test_process_response_signal_cancellation(self):
-
         request = self.factory.get("/")
         request.profiler = ProfilingRecord().start()
         middleware = ProfilingMiddleware(get_response=lambda r: None)
@@ -281,7 +276,6 @@ class ProfilingMiddlewareCustomUserTests(TestCase):
         self.assertIsNone(request.profiler.id)
 
     def test_global_exclude_function(self):
-
         # set the func to ignore everything
         RuleSet().save()
         request = self.factory.get("/")

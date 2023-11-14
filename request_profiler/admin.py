@@ -4,12 +4,10 @@ from .models import ProfilingRecord, RuleSet
 
 
 class RuleSetAdmin(admin.ModelAdmin):
-
     list_display = ("enabled", "uri_regex", "user_filter_type", "user_group_filter")
 
 
 class ProfilingRecordAdmin(admin.ModelAdmin):
-
     list_display = (
         "start_ts",
         "user",

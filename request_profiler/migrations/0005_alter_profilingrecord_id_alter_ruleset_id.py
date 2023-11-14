@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("request_profiler", "0004_profilingrecord_query_count"),
     ]

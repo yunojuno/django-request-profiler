@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("request_profiler", "0002_profilingrecord_http_referer")]
 
     operations = [
