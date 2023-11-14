@@ -10,7 +10,6 @@ from request_profiler.settings import LOG_TRUNCATION_DAYS
 
 
 class Command(BaseCommand):
-
     help = "Truncate the profiler log after a specified number days."
 
     def add_arguments(self, parser: CommandParser) -> None:

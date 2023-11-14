@@ -37,7 +37,6 @@ class RuleSetQuerySetTests(TestCase):
     """Basic model manager method tests."""
 
     def test_live_rules(self):
-
         _ = RuleSet.objects.create(uri_regex="", enabled=True)
         self.assertEqual(RuleSet.objects.live_rules().count(), 1)
 
@@ -50,7 +49,6 @@ class RuleSetQuerySetTests(TestCase):
         self.assertEqual(RuleSet.objects.live_rules().count(), 1)
 
     def test_live_rules_with_caching(self):
-
         settings.RULESET_CACHE_TIMEOUT = 10
         self.assertIsNone(cache.get(settings.RULESET_CACHE_KEY))
         # save a couple of rules
@@ -325,7 +323,6 @@ class ProfilingRecordModelTests(TestCase):
 
     @skipIfCustomUser
     def test_process_request(self):
-
         factory = RequestFactory()
         request = factory.get("/test")
         request.META["HTTP_USER_AGENT"] = "test-browser"
@@ -362,7 +359,6 @@ class ProfilingRecordModelTests(TestCase):
 
     @skipIfDefaultUser
     def test_process_request_with_custom_user(self):
-
         factory = RequestFactory()
         request = factory.get("/test")
         request.META["HTTP_USER_AGENT"] = "test-browser"
