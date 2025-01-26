@@ -1,7 +1,8 @@
 Django Request Profiler
 =======================
 
-## Project Deprecation Notice
+Project Deprecation Notice
+--------------------------
 
 This project was built many moons ago, during a time where APMs were either not
 commonplace or too awful or expensive to use. It was meant a simple way to see
@@ -15,7 +16,8 @@ be archived in due course.
 
 Thanks - YunoJuno Team.
 
-## Prior Readme
+Prior Readme
+------------
 
 **This package now requires Python 3.9 and Django 3.2 and above.**
 
