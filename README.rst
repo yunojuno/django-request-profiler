@@ -1,6 +1,22 @@
 Django Request Profiler
 =======================
 
+## Project Deprecation Notice
+
+This project was built many moons ago, during a time where APMs were either not
+commonplace or too awful or expensive to use. It was meant a simple way to see
+how an endpoint was working and an easy data-model you could query in SQL to get
+percentile performance. Nowadays, we have an advanced setup internally with modern
+APM/observability tooling and cannot afford the time it takes to maintain this app
+that we no longer use.
+
+If you are interested in maintaining it, please raise an issue. Otherwise it shall
+be archived in due course.
+
+Thanks - YunoJuno Team.
+
+## Prior Readme
+
 **This package now requires Python 3.9 and Django 3.2 and above.**
 
 A very simple request profiler for Django.
